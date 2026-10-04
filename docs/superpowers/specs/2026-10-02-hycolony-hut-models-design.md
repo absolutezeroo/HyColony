@@ -413,6 +413,11 @@ pour la mine. D'où :
   Les boîtes ainsi reconnues scellées cachent 14 côtés de plus, tous couverts (constructeur 5, coursier 6, mine 2,
   entrepôt 1), et 89 dessous sont rendus. Les dessus des quatre bandes de la bannière de l'hôtel de ville, absents du
   modèle de Blockbench et par où l'on voyait dans les bandes (relecture), sont rendus aussi ;
+- **une ouverture bouchée de l'intérieur** (2026-10-04, relecture) : la marmite du cuisinier est ouverte en haut, son
+  ragoût affleure l'ouverture et le rebord couvre la bande qui reste. Une face absente compte comme fermée quand les
+  boîtes scellées devant elle et celles qui la bouchent juste derrière la couvrent ensemble ; la marmite est alors
+  scellée et le ragoût, enfoui en elle, perd ses quatre côtés et son dessous (cinq îles peintes pour rien). Aucun
+  autre modèle ne change ;
 - textures des neuf huttes : 215 040 pixels avant, 153 600 après le premier passage (−29 %), 156 672 une fois les
   dessous rendus (−27 %) ; la mine passe de 256×256 à 64×352.
   Rendu inchangé : les icônes, dessinées du modèle et de sa texture, sont identiques à l'octet. L'armure de plates

@@ -176,6 +176,19 @@ Le guide de Hypixel et les mesures des textures de Hytale (recherche § 1 et 2) 
   (`Condition(wear, grime)`) :
   - à 1 dans le préréglage par défaut (`DEFAULT`, le rendu actuel à l'octet) ;
   - à 0 dans le nouveau système, qui les remplace par ses effets.
+- **États lisibles** (ajouté le 2026-10-04, l'apothicaire négligé ressemblait trop au neuf) : une condition dit aussi
+  combien son état doit se voir (`Condition.show` : 0 jusqu'à Used, 1 Worn, 2 Neglected, 3 Ruined). `show` :
+  - ajoute autant d'effets au budget de chaque île (`art.VISIBLE` + `show`, `surface.most_useful`) ;
+  - relève le plancher des zones de repos (`art.rest_floor` : de `REST` à 1 pour un objet en ruine), si bien qu'un
+    objet négligé porte son histoire jusqu'au milieu de ses grandes faces ;
+  - divise d'autant la coupe des zones de repos de la passe d'illustration (`illustration.rest`) ;
+  - au-delà de Worn, ternit tout le modèle (`surface.dulled`) : `DULL` de saturation en moins et `VEIL` du chemin vers
+    `FILM`, un gris-brun de poussière et de crasse, par pas au-delà de Worn. Le film vieillit le fini, pas l'histoire
+    posée dessus : les texels d'un effet (rouille, usure, dépôts) gardent leur couleur, sinon la rouille se fondrait
+    dans le bois. Un objet usé s'use sans encore se ternir.
+- Le budget ne garde que les effets qui peuvent apparaître sur l'île (`surface.reachable`) : un effet qui n'y atteint
+  aucun texel (la saleté loin du sol) laisse sa place au suivant, sauf s'il lit un signal qu'un effet déjà gardé
+  écrit (la rouille sur le métal que l'usure mettra à nu).
 
 ### 3.4 Cartes (7)
 

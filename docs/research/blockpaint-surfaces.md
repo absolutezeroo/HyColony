@@ -169,6 +169,40 @@ coton et `Cloth_Orange_Light`, 191, 148, 103). Le ton moyen de l'or, du bronze e
 `Rock_Gold_Brick_Side` (238, 174, 68 contre 222, 176, 68), `Metal_Bronze_Ornate` (178, 128, 64 contre 176, 126, 66)
 et `Metal_Copper` (205, 109, 53 contre 196, 110, 72).
 
+## 8. Le grain et la composition des meubles de Hytale (2026-10-04)
+
+Mesuré sur l'Assets.zip épinglé, par fenêtres de 16 x 16 texels opaques (pas de 16 ; écart moyen d'un texel au
+suivant au-dessus de 1), avec `critique.measure` (part du micro : micro / (meso + macro)) :
+
+| Échantillon | Sorte | Fenêtres | Micro : médiane, 75e, 90e centile | Écart médian |
+|---|---|---|---|---|
+| Mobilier (`Decorative_Sets/`, tous les `.png`) | chaude | 2 536 | 0,44 ; 0,65 ; 0,90 | 6,4 |
+| Mobilier | grise | 469 | 0,42 ; 0,62 ; 0,83 | 10,5 |
+| Mobilier | couleur | 1 076 | 0,38 ; 0,58 ; 0,77 | 7,3 |
+| Planches (`BlockTextures/Wood_*Planks*`) | chaude | 72 | 0,96 ; 1,16 ; 1,30 | 6,0 |
+| Roche (`BlockTextures/Rock_*`, 60 premières) | grise | 93 | 0,93 ; 1,21 ; 1,45 | 2,2 |
+| Métal (`BlockTextures/Metal_*`) | grise | 95 | 0,73 ; 0,99 ; 1,23 | 9,0 |
+
+- Un pinceau d'accessoire reste donc sous le 90e centile du mobilier (0,90) ; une pierre, sous celui de la roche
+  (1,45). Nos pinceaux peints texel par texel montaient à 1,2–1,9 (métal du dessus 1,23, tissu du dessus 1,93, pierre
+  1,58, argile 1,22) ; un pinceau trop lisse tombe sous le plancher « trop plat » de `critique.py` (2,9 en chaude et
+  grise, 5,0 en couleur). `check_brushes.py` tient les deux bornes.
+- **Touches** : les tissus et les terres cuites de Hytale montrent des plages d'environ deux texels d'un même ton
+  (`brushes.touch`, `TOUCH` 2) ; le métal brossé, des stries larges de deux à trois texels (`STROKE` 2,5), pas une
+  par rangée.
+- **Planches** : le coffre du bûcheron (`Lumberjack/Chest_Texture.png`) et les coffres anciens peignent des planches
+  de 4 à 5 texels, un joint sombre d'un texel, un liseré clair sur le bord de la planche suivante et un intérieur
+  calme, arrondi (plus clair au liseré, plus sombre vers le joint). Aucune planche de moins de 4 texels
+  (`materials.BOARD`).
+- **Tonneaux** (`Village/Barrel_*.png`) : douelles de 6 à 7 texels, joints fins plus doux que ceux du seau, cerclages
+  de 3 à 4 texels éclairés sur leur bord (`materials.BARREL_STAVE`, `BARREL_JOINT`).
+- **Cadre** : chaque panneau des coffres a un pourtour assombri et un centre plus clair : la passe d'illustration le
+  reprend (`illustration.planes`).
+- **Le critique ne juge pas la ressemblance** : sur les mêmes fenêtres, il signale 32 % des tonneaux, 33 % des coffres
+  et 38 % des tables de Hytale (surtout « trop plat » et « ombres sans virage »), contre 18 % de nos huttes. Faire
+  baisser son compte d'îles signalées n'est pas se rapprocher de Hytale ; il sert à repérer du bruit réel (« trop
+  bruité », « micro dominant »), l'œil juge le reste.
+
 ## Sources
 
 - [An Introduction to Making Models for Hytale](https://hytale.com/news/2025/12/an-introduction-to-making-models-for-hytale)
