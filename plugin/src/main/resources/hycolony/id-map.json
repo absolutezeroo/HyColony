@@ -14,7 +14,8 @@
     "tool.pickaxe": "Tool_Pickaxe_Crude",
     "tool.axe": "Tool_Hatchet_Crude",
     "tool.shovel": "Tool_Shovel_Crude",
-    "tool.hoe": "Tool_Hoe_Crude"
+    "tool.hoe": "Tool_Hoe_Crude",
+    "selftest.wheat_seeds": "Plant_Seeds_Wheat"
   },
   "blocks": {
     "hut.townhall": "HyColony_TownHall",

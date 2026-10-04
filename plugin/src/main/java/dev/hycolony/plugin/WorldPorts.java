@@ -4,6 +4,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.crafting.furnace.CookingSetup;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
 import dev.hycolony.plugin.adapter.HytaleContainerAccess;
 import dev.hycolony.plugin.adapter.HytaleItemCatalog;
@@ -35,7 +36,9 @@ final class WorldPorts {
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet();
         HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds, blocks);
         HytaleBlockCatalog blockCatalog = new HytaleBlockCatalog(hutBlockIds);
-        HytaleFoods foods = new HytaleFoods(ids.food());
+        // Assets, loaded only now (crafting.json was read at setup): the job tags, read once for both their uses.
+        JobTags tags = HytaleJobTags.load();
+        HytaleFoods foods = new HytaleFoods(ids.food(), tags.get(JobTags.EXCLUDED_FOOD));
         HytaleBlockTraits placement = new HytaleBlockTraits(ids.construction());
         return new GamePorts(
                 catalog,
@@ -54,9 +57,8 @@ final class WorldPorts {
                         ids.sleepParticle(),
                         ids.food().particle()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
-                // The job tags are assets, loaded only now (crafting.json was read at setup).
                 new CraftingSetup(
-                        HytaleRecipeCatalog.load(), setup.craftingRules().withTags(HytaleJobTags.load())),
+                        HytaleRecipeCatalog.load(), setup.craftingRules().withTags(tags)),
                 new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()),
                 new CookingSetup(
                         new HytaleCookingCatalog(ids.food(), foods),

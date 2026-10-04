@@ -223,7 +223,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             construction(player, rt, at, ids);
             blockKeys(player, ids);
             HutTypesSelfTest.run(out, rt, ids);
-            RecipesSelfTest.run(out, rt);
+            RecipesSelfTest.run(out, rt, ids);
             FoodSelfTest.run(out, rt);
             PlanItemsSelfTest.run(out, rt);
             FarmerSelfTest.run(out, rt, ids);

@@ -1,5 +1,7 @@
 # Infobulle des aliments : afficher la nutrition des citoyens
 
+> **Mise à jour du 2026-10-04.** La table `food.foods` de l'id-map n'existe plus : les valeurs des aliments sont les fichiers `plugin/src/main/resources/Server/HyColony/Foods/<id>.json`, et `food.cookingBench` est remplacé par la règle « tout banc `Processing` avec combustible qui cuit un aliment » (spec `docs/superpowers/specs/2026-10-04-hycolony-nourriture-ouverte-design.md` § 5.5 et § 7). `tools/food/generate.py` et `checkFoodTooltips` lisent ces fichiers. Le reste de cette recherche (patchs Hytalor, textes, séparateur) vaut toujours.
+
 Recherche du 2026-10-01. But : ajouter à l'infobulle de chaque aliment Hytale une ligne comme « Nourrit un citoyen : 12 (2 gigots) · Palier 1 » (ou « Trop cru pour les citoyens », « Empoisonné »), tirée de la table `food.foods` de `plugin/src/main/resources/hycolony/id-map.json` (50 entrées), traduite en en-US et fr-FR.
 
 Sources :

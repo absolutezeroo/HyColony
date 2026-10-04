@@ -99,6 +99,8 @@ class Assets:
         self.zip = zipfile.ZipFile(path)
         self.paths = {n.rsplit("/", 1)[1][:-5]: n for n in self.zip.namelist()
                       if n.startswith("Server/Item/Items/") and n.endswith(".json")}
+        self.recipe_paths = [n for n in self.zip.namelist()
+                             if n.startswith("Server/Item/Recipes/") and n.endswith(".json")]
         lang = self.zip.read("Server/Languages/en-US/server.lang").decode("utf-8")
         self.server_keys = {"server." + line.partition("=")[0].strip()
                             for line in lang.splitlines() if "=" in line and not line.lstrip().startswith("#")}
@@ -116,16 +118,35 @@ class Assets:
             self._merged[item_id] = merged
         return self._merged[item_id]
 
-    def cooking_inputs(self, foods):
-        """Every input of a processing recipe whose primary output is a food (an item, or each item of a resource
-        type), like the plugin's CookingBenches: what citizens will not eat raw (MC FoodUtils.EDIBLE). Recipes do not
-        inherit; a recipe without PrimaryOutput makes its own item."""
-        inputs = set()
+    def recipes(self):
+        """Every recipe with the item it makes without a PrimaryOutput: an item's own Recipe and Recipes (that item;
+        recipes do not inherit), then the standalone Server/Item/Recipes files (none)."""
         for item_id in self.paths:
-            recipe = self.own(item_id).get("Recipe") or {}
-            output = (recipe.get("PrimaryOutput") or {}).get("ItemId", item_id)
-            benches = recipe.get("BenchRequirement") or []
-            if output in foods and any(b.get("Type") == "Processing" for b in benches):
+            own = self.own(item_id)
+            for recipe in ([own["Recipe"]] if own.get("Recipe") else []) + (own.get("Recipes") or []):
+                yield recipe, item_id
+        for name in self.recipe_paths:
+            yield json.loads(self.zip.read(name).decode("utf-8")), None
+
+    def fuel_benches(self):
+        """The ids of the processing benches with a fuel slot (BlockType.Bench.Fuel), as the plugin's CookingBenches."""
+        out = set()
+        for item_id in self.paths:
+            bench = (self.item(item_id).get("BlockType") or {}).get("Bench") or {}
+            if bench.get("Type") == "Processing" and bench.get("Fuel") and bench.get("Id"):
+                out.add(bench["Id"])
+        return out
+
+    def cooking_inputs(self, foods):
+        """Every input (an item, or each item of a resource type) of a recipe at a processing bench with a fuel slot
+        whose primary output is one of HyColony's food files, as the plugin's CookingBenches does for every food: what
+        citizens will not eat raw (MC FoodUtils.EDIBLE)."""
+        benches = self.fuel_benches()
+        inputs = set()
+        for recipe, made in self.recipes():
+            output = (recipe.get("PrimaryOutput") or {}).get("ItemId", made)
+            required = recipe.get("BenchRequirement") or []
+            if output in foods and any(b.get("Type") == "Processing" and b.get("Id") in benches for b in required):
                 for i in recipe.get("Input") or []:
                     if "ItemId" in i:
                         inputs.add(i["ItemId"])

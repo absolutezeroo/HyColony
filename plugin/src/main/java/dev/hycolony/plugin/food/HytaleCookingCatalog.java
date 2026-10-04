@@ -16,8 +16,9 @@ import java.util.logging.Level;
 /**
  * CookingCatalog over Hytale's assets: a station is a block whose bench cooks a food, the fuels are what the stations'
  * fuel slots burn ({@link CookingBenches}); the defaults are the id-map's; a dish's raw item comes from the cooking
- * recipes ({@link HytaleFoods}). Read on first use, cached; never throws (a failure answers no station, logged once as
- * a WARNING).
+ * recipes ({@link HytaleFoods}). Read on first use, cached; never throws: a failure to read the benches answers no
+ * station (logged SEVERE by {@link CookingBenches}), one to read a block type answers "no station" (one WARNING, then
+ * FINE).
  */
 public final class HytaleCookingCatalog implements CookingCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();

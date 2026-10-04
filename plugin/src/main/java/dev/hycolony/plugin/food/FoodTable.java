@@ -8,51 +8,62 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The foods a citizen eats (spec 2026-10-04 § 5): each {@code Server/HyColony/Foods} file whose item exists, then each
- * other consumable, non-variant item of the id-map's food category, at the value of its quality's rank
- * ({@link dev.hycolony.core.kernel.item.FoodQuality}). Read once the assets are loaded; never throws (a failure
- * answers what was read so far, logged SEVERE).
+ * other consumable item of the id-map's food category that is no variant and whose quality is not hidden from search
+ * (Hytale's templates), at the value of its quality's rank ({@link dev.hycolony.core.kernel.item.FoodQuality}); then
+ * none of the {@code excluded_food} tag (MC ItemStackUtils.ISFOOD). A file out of bounds is skipped, so its item takes
+ * its quality's value like a food without a file. Read once the assets are loaded; never throws (a failure answers
+ * what was read so far, logged SEVERE).
+ *
+ * @param foods every food, by item
+ * @param fromFiles the item ids whose food file was taken
  */
-final class FoodTable {
+record FoodTable(Map<ItemKey, FoodInfo> foods, Set<String> fromFiles) {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private FoodTable() {}
+    FoodTable {
+        foods = Map.copyOf(foods);
+        fromFiles = Set.copyOf(fromFiles);
+    }
 
-    /** Every food, by item. */
-    static Map<ItemKey, FoodInfo> load(FoodIds ids) {
+    /** Every food, without the items of {@code excluded}. */
+    static FoodTable load(FoodIds ids, Set<ItemKey> excluded) {
         Map<ItemKey, FoodInfo> out = new HashMap<>();
+        Set<String> files = new HashSet<>();
         try {
             Map<String, Item> items = Item.getAssetMap().getAssetMap();
-            int files = addFiles(items, out);
+            addFiles(items, out, files);
             ids.category().ifPresent(category -> addByQuality(items, category, ids, out));
-            LOG.at(Level.INFO).log("Foods: %d, %d of them from a food file", out.size(), files);
+            out.keySet().removeAll(excluded);
+            files.removeIf(id -> excluded.contains(new ItemKey(id)));
+            LOG.at(Level.INFO).log("Foods: %d, %d of them from a food file", out.size(), files.size());
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony foods could not be read");
         }
-        return out;
+        return new FoodTable(out, files);
     }
 
-    /** Adds each food file of a known item, skipping and logging the others; returns how many it added. */
-    private static int addFiles(Map<String, Item> items, Map<ItemKey, FoodInfo> out) {
+    /** Adds each food file of a known item to {@code out} and its id to {@code files}; skips and logs the others. */
+    private static void addFiles(Map<String, Item> items, Map<ItemKey, FoodInfo> out, Set<String> files) {
         List<String> unknown = new ArrayList<>();
-        int added = 0;
         for (FoodValueAsset f : FoodValueAsset.all().values()) {
             if (!items.containsKey(f.getId())) {
                 unknown.add(f.getId());
             } else if (add(f, out)) {
-                added++;
+                files.add(f.getId());
             }
         }
         if (!unknown.isEmpty()) {
             LOG.at(Level.WARNING).log("HyColony food files of unknown items skipped: %s", unknown);
         }
-        return added;
     }
 
     /** Adds one food file; false (logged) when its values are out of bounds. */
@@ -70,27 +81,27 @@ final class FoodTable {
     private static void addByQuality(
             Map<String, Item> items, String category, FoodIds ids, Map<ItemKey, FoodInfo> out) {
         for (Item item : items.values()) {
-            if (item != null && isDefaultFood(item, category)) {
+            ItemQuality quality =
+                    item == null ? null : ItemQuality.getAssetMap().getAsset(item.getQualityIndex());
+            if (item != null && isDefaultFood(item, quality, category)) {
                 out.putIfAbsent(
-                        new ItemKey(item.getId()), ids.rank(qualityId(item)).food());
+                        new ItemKey(item.getId()),
+                        ids.rank(quality == null ? null : quality.getId()).food());
             }
         }
     }
 
     /**
-     * A consumable item of the food category that is no variant: Hytale's variants (Food_Fish_Raw_Rare…) only carry a
-     * recipe whose output is another item, and its item library hides them (Item.isVariant).
+     * A consumable item of the food category that is no variant and whose quality is not hidden from search: Hytale's
+     * variants (Food_Fish_Raw_Rare…) only carry a recipe whose output is another item, and its templates
+     * (Template_Food, quality Template) are no real items; its item library hides both.
      */
-    private static boolean isDefaultFood(Item item, String category) {
+    private static boolean isDefaultFood(Item item, @Nullable ItemQuality quality, String category) {
         String[] categories = item.getCategories();
         return item.isConsumable()
                 && !item.isVariant()
+                && (quality == null || !quality.isHiddenFromSearch())
                 && categories != null
                 && Arrays.asList(categories).contains(category);
-    }
-
-    private static @Nullable String qualityId(Item item) {
-        ItemQuality quality = ItemQuality.getAssetMap().getAsset(item.getQualityIndex());
-        return quality == null ? null : quality.getId();
     }
 }
