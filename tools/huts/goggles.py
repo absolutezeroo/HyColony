@@ -6,7 +6,9 @@ the forehead and a brass dial."""
 from PIL import ImageDraw
 
 from brushes import crystal, metal
+from composer import Composer
 from conditions import MAINTAINED
+from illustration import Illustration
 from materials import BRASS, CYAN, LEATHER, leather
 
 MODEL = "Items/HyColony/Build_Goggles"
@@ -15,6 +17,10 @@ ICON = "Build_Goggles"
 PICTURES = frozenset({"stitched"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): an architect's own tool, kept with care.
 CONDITION, SEED = MAINTAINED, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the lenses the accent, the loupe and
+# dial next.
+IMPORTANCE = {"Lens_L": 3, "Lens_R": 3, "Loupe_Lens": 2, "Dial": 2}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"leather": "leather", "stitched": "leather", "brass": "cuprous"}
 
 

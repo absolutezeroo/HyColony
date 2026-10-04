@@ -86,6 +86,63 @@ class BrushTest(unittest.TestCase):
             allowed = {"micro dominant"} if name == "brick" else set()
             self.assertFalse(found & {"trop bruité", "bruit uniforme", "micro dominant"} - allowed, name)
 
+    def test_wood_reads_as_boards_a_light_bevel_beside_each_dark_seam(self):
+        # Ten boards of 6: a row's fibres even out over them, the seam (a quarter darker) and the bevel stand out
+        # against the texel row next to them far more than the board's rounding does (a twenty-fifth a row).
+        image = brushes.wood((150, 104, 62), plank=6)(60, 60, "front")
+
+        def row(y):
+            return sum(sum(image.getpixel((x, y))[:3]) for x in range(60)) / 60
+
+        seams = [row(6 * k + 4) - row(6 * k + 5) for k in range(10)]
+        bevels = [row(6 * k) - row(6 * k + 1) for k in range(1, 10)]
+        self.assertGreater(sum(seams) / len(seams), 40, "a dark seam ends each board")
+        self.assertGreater(sum(bevels) / len(bevels), 20, "a light bevel starts the next")
+
+    def test_an_island_no_wider_than_a_board_is_one_board_rounded_across(self):
+        # Posts 5 and 6 wide, their grain up their length: rounded across their whole width, the left edge lighter than
+        # the right by the whole of BOARD_ROUND (a rounding spread over a full plank would stop part of the way).
+        rgb = (150, 104, 62)
+        for width in (5, 6):
+            image = brushes.wood(rgb)(width, 24, "front")
+
+            def column(x):
+                return sum(sum(image.getpixel((x, y))[:3]) for y in range(24)) / 24
+
+            self.assertGreater((column(0) - column(width - 1)) / sum(rgb), 0.9 * brushes.BOARD_ROUND, width)
+
+    def test_a_stone_crack_breaks_in_runs_not_texel_by_texel(self):
+        image = brushes.stone((128, 124, 116))(96, 96, "front")
+        whole = total = 0
+        # Every third row is a crack row (chunk height 3): a cracked texel is darker than the one under it, in its
+        # chunk. A crack is decided for each run of three texels, so a run is cracked whole or not at all: about 0.8 of
+        # the runs agree here (the texels' own noise blurs some), 0.43 when decided texel by texel.
+        for y in range(0, 93, 3):
+            cracked = [sum(image.getpixel((x, y))[:3]) < sum(image.getpixel((x, y + 1))[:3]) - 40 for x in range(96)]
+            for start in range(0, 96, 3):
+                # A vertical crack's texel (every 4th column, the rows shifted by 2 in turn) darkens the row under too.
+                flags = [cracked[x] for x in range(start, start + 3) if (x + (y // 3 % 2) * 2) % 4]
+                if len(flags) > 1:
+                    total += 1
+                    whole += len(set(flags)) == 1
+        self.assertGreaterEqual(whole / total, 0.65)
+
+    def test_the_common_brushes_paint_in_touches_neither_specks_nor_flat(self):
+        # micro / (meso + macro) over 16 x 16 windows of Hytale (docs/research/blockpaint-surfaces.md § 8): its
+        # furniture's 90th centile 0.90, its grey rock's 1.45. A brush painting texel by texel stood at 1.2 to 1.9; a
+        # smooth one falls under critique's floor for its kind (too flat).
+        limits = {"stone": 1.45}
+        common = {"metal": brushes.metal((150, 154, 162)), "stone": brushes.stone((128, 124, 116)),
+                  "cloth": brushes.cloth((150, 60, 50)), "paper": brushes.paper((236, 226, 200)),
+                  "wood": brushes.wood((150, 104, 62)), "clay": brushes.clay((160, 120, 90)),
+                  "terracotta": brushes.terracotta((180, 100, 70))}
+        for name, brush in common.items():
+            for (w, h), side in (((16, 16), "front"), ((16, 16), "top"), ((32, 32), "front"), ((8, 24), "front")):
+                m = critique.measure(brush(w, h, side))
+                case = (name, w, h, side, round(m.micro_share, 2), round(m.step, 1))
+                self.assertLess(m.micro_share, limits.get(name, 0.90), case)
+                self.assertGreaterEqual(m.step, critique.BUDGETS[m.kind].flat, case)
+
     def test_skin_never_jumps_from_one_texel_to_the_next(self):
         image = BRUSHES["skin"](16, 16, "front")
         for x in range(15):

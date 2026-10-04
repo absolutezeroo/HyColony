@@ -12,8 +12,10 @@ from PIL import Image
 
 from brushes import average, cloth, wood
 from catalog import module_surface, module_texture, surveyed
+from composer import Composer
 from conditions import DRY_INTERIOR, MAINTAINED
 from icons import ICON_SIZE, draw_model
+from illustration import Illustration
 from models import bounds, walk
 from pack import save_png, write_json
 from paths import PACK
@@ -66,9 +68,11 @@ def material(name, _side):
 
 
 # Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.module_texture): a bed slept in and kept, indoors,
-# standing on the floor; its tiles are each colour's (generate).
+# standing on the floor; its tiles are each colour's (generate). Illustrated and composed (specs 2026-10-04 blockpaint
+# illustration, composer): the blanket and pillow ahead of the frame.
 LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=MAINTAINED, ENVIRONMENT=DRY_INTERIOR, SEED=11,
-                       material=material)
+                       material=material, IMPORTANCE={"Blanket": 2, "Blanket_Fold": 2, "Pillow": 2, "Pillow_Top": 2},
+                       ILLUSTRATION=Illustration(), COMPOSER=Composer())
 
 
 def hitbox(nodes):

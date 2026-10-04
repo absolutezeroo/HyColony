@@ -3,7 +3,9 @@ quarrier's job is ported), built by a one-off script: a boulder split in two by 
 chisel on it, a first cut block, chips and rubble at its foot."""
 
 from brushes import coloured, jitter, metal, painted, stone, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, WORN
+from illustration import Illustration
 from materials import CUT_STONE, ROCK
 
 MODEL = "Blocks/HyColony/Huts/Quarry_Small"
@@ -11,6 +13,11 @@ ICON = "Hut_Quarry_Small"
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a quarry face, hard worked, outdoors.
 CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the cut stone the accent, the mallet
+# and wedges next, the rocks' feet behind.
+IMPORTANCE = {"Cut": 3, "Mallet_Head": 2, "Wedge_1": 2, "Wedge_2": 2, "Wedge_3": 2, "Rock_L_Foot": 0,
+              "Rock_R_Foot": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"crack": "stone"}
 
 

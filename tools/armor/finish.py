@@ -3,7 +3,9 @@ Hytale's steel armour paints them, overlapping lames, dark mail, leather, the re
 on the visor; the sword's blade, red grip and gems, the shield's red enamel face."""
 
 from brushes import cloth, coloured, crystal, jitter, painted
+from composer import Composer
 from conditions import MAINTAINED
+from illustration import Illustration
 from materials import leather
 from PIL import ImageDraw
 
@@ -11,6 +13,8 @@ from PIL import ImageDraw
 # anywhere (no environment); worn, not standing on a floor. Its "gold" is the brass of its rims, buckles and guard (a
 # gilt alloy, not gold), hence cuprous.
 CONDITION, SEED = MAINTAINED, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer), every piece as important as the next.
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"plate": "ferrous", "trim": "ferrous", "gold": "cuprous", "lames": "ferrous", "mail": "ferrous",
           "tabard_1": "textile", "tabard_2": "textile", "leather": "leather", "plume": "hair", "plume_white": "hair",
           "visor_l": "ferrous", "visor_r": "ferrous", "ridge": "ferrous", "grip": "leather", "blade": "ferrous",

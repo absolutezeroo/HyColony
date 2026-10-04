@@ -37,6 +37,16 @@ ROLES = {
     "rope": Role(Declared(contact=0.4, abrasion=0.3)),
     "pot": Role(Declared(), {"water_stain": 1.3}),
     "rim": Role(Declared(contact=0.5, impact=0.4)),
+    # Furniture (spec 2026-10-04 blockpaint apothecary § 4): a frame bears, a shelf gathers dust and grime at its back,
+    # a drawer front is pulled, a worktop is rubbed and stained, a label and a ledger stay readable, a bottle stays
+    # clean but runs.
+    "frame": Role(Declared()),
+    "shelf": Role(Declared(abrasion=0.2), {"dust": 1.4, "grime": 1.2}),
+    "drawer": Role(Declared(contact=0.6)),
+    "worktop": Role(Declared(contact=0.4, abrasion=0.6), {"scratches": 1.4, "micro_scratches": 1.4}),
+    "label": Role(Declared(focus=0.3), {"dirt": 0.3, "grime": 0.3, "dust": 0.5}),
+    "bottle": Role(Declared(contact=0.3), {"dust": 0.5, "grime": 0.5}),
+    "ledger": Role(Declared(contact=0.5, focus=0.3), {"dust": 0.6}),
 }
 
 

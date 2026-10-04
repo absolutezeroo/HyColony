@@ -21,19 +21,21 @@ import history
 import maps
 import roles
 import surface
+from composer_units import TOUCH
+from composer_values import DISTINCT_COLOUR
 from pack import ROOT, Assets
 from paint import grain_of
+from vectors import near
 
 # An answer: the question, True or False (None: the model gives nothing to ask it on), and what was measured.
 Answer = namedtuple("Answer", "question ok detail")
 # From afar a model shows at a quarter of its size: each FAR x FAR block of texels becomes one, and shows a zone when
 # at least READABLE of its texels are in it (half the block, the box filter's threshold).
 FAR, READABLE = 2, 2
-# Two neighbouring materials are told apart when their mean colours differ by this much (summed over r, g, b), or
-# their grains by this much (mean step).
-DISTINCT_COLOUR, DISTINCT_STEP = 30, 3.0
-# Two parts are neighbours when their texels come within this many world units.
-TOUCH = 0.6
+# Two neighbouring materials are told apart when their mean colours differ by composer_values.DISTINCT_COLOUR (the
+# composer pulls them towards that, by a bounded share), or their grains by this much (mean step); within
+# composer_units.TOUCH they are neighbours.
+DISTINCT_STEP = 3.0
 # Where each mod keeps its models: a module's MODEL is under one of them.
 COMMONS = tuple(ROOT / m / "src/main/resources/Common" for m in ("plugin", "vanilla/plugin", "domum/plugin"))
 
@@ -179,7 +181,7 @@ def materials_distinct(records, material_of):
         for b in keys[k + 1:]:
             pa, pb = parts[a], parts[b]
             small = min(len(pa["points"]), len(pb["points"])) < FAR * FAR * READABLE
-            if a[1] == b[1] or pa["family"] == pb["family"] or small or not near(pa["points"], pb["points"]):
+            if a[1] == b[1] or pa["family"] == pb["family"] or small or not near(pa["points"], pb["points"], TOUCH):
                 continue
             colour = sum(abs(mean(c[n] for c in pa["colours"]) - mean(c[n] for c in pb["colours"])) for n in range(3))
             if colour < DISTINCT_COLOUR and abs(mean(pa["steps"]) - mean(pb["steps"])) < DISTINCT_STEP:
@@ -201,13 +203,6 @@ def history_in_place(records, events):
     stray = [f"{r[0]} {r[1]} {name}" for r in records for name, zone in r[3].zones.items() if name in laid
              for c in zone if all(history.reach_of(e, r[3].texels[c], o) <= 0 for e, o in laid[name])]
     return Answer("histoire à sa place", not stray, ", ".join(sorted(set(stray))[:6]) or "chaque marque à sa place")
-
-
-def near(points_a, points_b):
-    """Whether two sets of world points come within TOUCH of each other (bounding boxes, widened by TOUCH)."""
-    lo_a, hi_a = [min(p[k] for p in points_a) for k in range(3)], [max(p[k] for p in points_a) for k in range(3)]
-    lo_b, hi_b = [min(p[k] for p in points_b) for k in range(3)], [max(p[k] for p in points_b) for k in range(3)]
-    return all(lo_a[k] - TOUCH <= hi_b[k] and lo_b[k] - TOUCH <= hi_a[k] for k in range(3))
 
 
 def steps(image, dx, dy):

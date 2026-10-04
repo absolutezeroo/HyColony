@@ -6,8 +6,10 @@ Particles, on the empty node Flame); the embers and the candle's flame glow (ful
 from PIL import Image, ImageDraw
 
 from brushes import as_tile, crystal, embers, metal, paper, stone, terracotta, wood
+from composer import Composer
 from conditions import DRY_INTERIOR, USED
 from decals import Decal
+from illustration import Illustration
 from materials import BRASS
 
 MODEL = "Blocks/HyColony/Huts/Residence"
@@ -16,6 +18,10 @@ ICON = "Hut_Residence"
 PICTURES = frozenset({"log_end", "portrait"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a lived-in home, indoors.
 CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the clock the accent, the portrait,
+# kettle and embers next, the hearth's back behind.
+IMPORTANCE = {"Clock": 3, "Portrait": 2, "Kettle": 2, "Embers": 2, "Back": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"log_end": "wood", "portrait": "paint_film", "wax": "wax", "brass": "cuprous", "copper": "cuprous"}
 BARK = (84, 58, 40)
 # The firebox's faces, darkened by soot: node -> its sides inside the fire.

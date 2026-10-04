@@ -6,8 +6,10 @@ the saw's teeth past its blade)."""
 from PIL import Image, ImageDraw
 
 from brushes import as_tile, clay, cloth, metal, paper, wood
+from composer import Composer
 from conditions import DRY_INTERIOR, USED
 from decals import Decal
+from illustration import Illustration
 from materials import PAPER, feather, tinted
 
 MODEL = "Blocks/HyColony/Huts/Builder"
@@ -16,6 +18,10 @@ ICON = "Hut_Builder"
 PICTURES = frozenset({"sheet", "roll_end"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a working drafting table, indoors.
 CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the plan the accent, the saw and the
+# hammer next.
+IMPORTANCE = {"Blueprint": 3, "Saw_Blade": 2, "Hammer_Head": 2}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"sheet": "paper", "blueprint": "paper", "sheet_edge": "paper", "roll_end": "paper", "lead": "stone",
           "ink": "liquid", "shaft": "bone", "feather": "hair"}
 SKETCH = (214, 226, 238, 255)

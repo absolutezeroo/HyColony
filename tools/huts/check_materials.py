@@ -34,6 +34,14 @@ class StavesTest(unittest.TestCase):
         self.assertGreater(sum(red(top, x, 0) for x in range(12)), sum(red(side, x, 0) for x in range(12)))
 
 
+    def test_a_barrel_s_wide_staves_take_softer_joints_than_a_bucket_s(self):
+        width, joint = materials.BARREL_STAVE, materials.BARREL_JOINT
+        side = materials.staves(materials.BUCKET_WOOD, width, joint)(width * 2, 6, "front")
+        bucket = materials.staves(materials.BUCKET_WOOD)(width * 2, 6, "front")
+        self.assertLess(red(side, width - 1, 0), red(side, width - 2, 0), "still a joint")
+        self.assertGreater(red(side, width - 1, 0), red(bucket, materials.STAVE - 1, 0), "a softer one")
+
+
 class FamilyTest(unittest.TestCase):
     def test_the_shared_brushes_carry_their_family(self):
         self.assertEqual(("wood", "textile", "plant"), (materials.staves(materials.BUCKET_WOOD).family,

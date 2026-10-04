@@ -22,8 +22,10 @@ sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "domum")]
 from blocks import common  # noqa: E402
 from brushes import coloured, jitter, painted, stone, wood  # noqa: E402
 from catalog import model_texture  # noqa: E402
+from composer import Composer  # noqa: E402
 from conditions import TEMPERATE_OUTDOOR, USED  # noqa: E402
 from icons import ICON_SIZE, draw_model, frame  # noqa: E402
+from illustration import Illustration  # noqa: E402
 from models import bounds, unwrap  # noqa: E402
 from pack import ROOT, rounded, save_png, write_json  # noqa: E402
 from shapes import SHAPES, parts  # noqa: E402
@@ -143,10 +145,11 @@ def _rope():
 
 TILES = {"soil": stone((92, 66, 46), chunk=(2, 2)), "stake": wood((112, 82, 54), plank=99),
          "cut": wood((198, 162, 112), plank=99), "rope": _rope()}
-# Peint en couches (spec 2026-10-03 blockpaint surfaces, catalog.model_texture) : un balisage de chantier qui a servi,
-# dehors, planté dans le sol.
+# Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.model_texture): a site marker that has served,
+# outdoors, driven into the ground; illustrated and composed (specs 2026-10-04 blockpaint illustration, composer).
 LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=USED, ENVIRONMENT=TEMPERATE_OUTDOOR, SEED=11,
-                       FAMILY={"rope": "textile"}, material=_material, tiles=lambda assets: TILES)
+                       FAMILY={"rope": "textile"}, material=_material, tiles=lambda assets: TILES,
+                       ILLUSTRATION=Illustration(), COMPOSER=Composer())
 
 
 if __name__ == "__main__":

@@ -4,21 +4,26 @@ a braid of garlic, four burners (Burner_<A..D>) with a pot of stew and its ladle
 shelf holding plates and a bowl, a salt crock and a pepper mill. Two blocks tall, as Hytale's cooking bench. The pot
 steams (the item's Particles, on the empty node Steam)."""
 
-from PIL import ImageDraw
+from PIL import Image
 
-from brushes import as_tile, cloth, coloured, embers, jitter, metal, painted, paper, smooth, terracotta, wood
+from brushes import cloth, coloured, embers, jitter, metal, painted, paper, smooth, terracotta, wood
+from composer import Composer
 from conditions import INDUSTRIAL, USED
+from illustration import Illustration
 from materials import BRASS
 
 MODEL = "Blocks/HyColony/Huts/Cook"
 ICON = "Hut_Cook"
 IRON = (62, 60, 66)
-# The pot rim's top island (Pot_Rim, 9 x 1 x 9 in the Blockbench model): the stew is drawn for it.
-RIM = 9
 # Materials drawn for their island, never turned.
 PICTURES = frozenset({"stew"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a stove in use, its soot and grease (a fire's workplace).
 CONDITION, ENVIRONMENT, SEED = USED, INDUSTRIAL, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the pot the accent, the oven's door
+# and glow next, the backsplash behind.
+IMPORTANCE = {"Pot": 3, "Pot_Rim_F": 3, "Pot_Rim_B": 3, "Pot_Rim_L": 3, "Pot_Rim_R": 3, "Stew": 3, "Oven_Door": 2,
+              "Glow": 2, "Backsplash": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"crock": "ceramic", "stew": "liquid", "towel": "textile", "brass": "cuprous", "garlic": "plant",
           "plate": "ceramic"}
 # Node name prefix -> material.
@@ -30,7 +35,7 @@ PREFIXES = (("Glow", "embers"), ("Oven_Handle", "brass"), ("Rail", "brass"), ("T
 def material(name, side):
     """The material of a node's face: the stew in the pot, each of the four burners (Burner_<A..D>) in lighter iron
     under a brass cap and a dark pan grate, then by name; cast iron for the rest of the stove."""
-    if name == "Pot_Rim" and side == "top":
+    if name == "Stew" and side == "top":
         return "stew"
     if name.startswith("Burner"):
         return "brass" if name.endswith("_Cap") else "iron" if "_Grate" in name else "burner"
@@ -72,13 +77,11 @@ def towel():
     return painted(rule)
 
 
-def stew(size=RIM):
-    """The pot's size x size rim, laid out for its island: a one pixel iron rim round a thick stew dotted with carrot
-    and herbs."""
-    image = as_tile(metal(IRON, streak=0.04))
-    draw = ImageDraw.Draw(image)
-    draw.rectangle([1, 1, size - 2, size - 2], fill=(142, 82, 42, 255))
-    for x, y, colour in ((2, 2, (226, 128, 48)), (5, 3, (226, 128, 48)), (3, 5, (96, 140, 60)), (6, 6, (96, 140, 60)),
-                         (2, 6, (176, 112, 64)), (6, 2, (176, 112, 64))):
-        draw.point((x, y), fill=(*colour, 255))
+def stew():
+    """The top of the stew (Stew, 7 x 1 x 7 in the Blockbench model, one unit under the pot's rim of four walls), laid
+    out for its island: a thick stew dotted with carrot and herbs."""
+    image = Image.new("RGBA", (32, 32), (142, 82, 42, 255))
+    for x, y, colour in ((1, 1, (226, 128, 48)), (4, 2, (226, 128, 48)), (2, 4, (96, 140, 60)), (5, 5, (96, 140, 60)),
+                         (1, 5, (176, 112, 64)), (5, 1, (176, 112, 64))):
+        image.putpixel((x, y), (*colour, 255))
     return image

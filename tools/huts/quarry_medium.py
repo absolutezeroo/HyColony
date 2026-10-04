@@ -3,7 +3,9 @@ quarrier's job is ported), built by a one-off script: three cut blocks stacked o
 sledgehammer standing head down against them, a hollow bucket holding a pick handle and a chisel, rubble."""
 
 from brushes import metal, stone, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, WORN
+from illustration import Illustration
 from materials import BUCKET_INSIDE, BUCKET_WOOD, CUT_STONE, ROCK, rope, staves
 
 MODEL = "Blocks/HyColony/Huts/Quarry_Medium"
@@ -11,6 +13,10 @@ ICON = "Hut_Quarry_Medium"
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a quarry's stock, hard worked, outdoors.
 CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the top cut block the accent, the
+# sledge and bucket next, the pallet's runners behind.
+IMPORTANCE = {"Block_3": 3, "Sledge_Head": 2, "Bucket_F": 2, "Runner_1": 0, "Runner_2": 0, "Runner_3": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 # Node name stem (before the first '_') -> material.
 STEMS = {"Runner": "pallet", "Slat": "pallet", "Block": "cut", "Rope": "rope", "Sledge": "head", "Bucket": "bucket",
          "Band": "iron", "Rubble": "rock", "Chip": "rock"}

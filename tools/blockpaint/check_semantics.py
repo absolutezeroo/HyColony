@@ -8,12 +8,14 @@ from types import SimpleNamespace
 from PIL import Image
 
 import catalog
+import composer_units
 import conditions
 import decals
 import deposits
 import effects
 import roles
 import semantics
+import vectors
 from check_effects import DECLARED, crate_model, crate_module
 from models import unwrap
 
@@ -123,8 +125,8 @@ class SemanticsTest(unittest.TestCase):
         self.assertTrue(distinct(record("Shaft", "bone", 10, 0), tip), "too small to read from afar")
 
     def test_two_parts_apart_are_not_neighbours(self):
-        self.assertTrue(semantics.near([(0, 0, 0), (1, 1, 1)], [(1.5, 0, 0)]))
-        self.assertFalse(semantics.near([(0, 0, 0), (1, 1, 1)], [(2, 0, 0)]))
+        self.assertTrue(vectors.near([(0, 0, 0), (1, 1, 1)], [(1.5, 0, 0)], composer_units.TOUCH))
+        self.assertFalse(vectors.near([(0, 0, 0), (1, 1, 1)], [(2, 0, 0)], composer_units.TOUCH))
 
     def test_two_materials_of_one_colour_but_different_grain_are_distinct(self):
         flat = (lambda w, h, side: Image.new("RGBA", (w, h), (130, 100, 70, 255)))

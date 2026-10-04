@@ -196,6 +196,17 @@ class RolesTest(unittest.TestCase):
                      "hinge", "lid", "leg", "rope", "pot", "rim"):
             self.assertIn(role, roles.ROLES)
 
+    def test_furniture_roles_say_what_their_parts_go_through(self):
+        # Spec 2026-10-04 blockpaint apothecary § 4.
+        role = roles.ROLES
+        self.assertGreater(role["drawer"].maps.contact, 0)
+        self.assertGreater(role["worktop"].maps.abrasion, 0)
+        self.assertGreater(role["shelf"].weights["dust"], 1, "a shelf gathers dust")
+        self.assertLess(role["label"].weights["grime"], 1, "a label stays readable")
+        self.assertLess(role["bottle"].weights["dust"], 1)
+        self.assertGreater(role["ledger"].maps.contact, 0)
+        self.assertEqual(roles.Declared(), role["frame"].maps)
+
 
 def hsv(pixel):
     return colorsys.rgb_to_hsv(*(c / 255 for c in pixel[:3]))

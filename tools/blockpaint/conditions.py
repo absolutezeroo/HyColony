@@ -10,9 +10,11 @@ import roles
 
 # A condition: the degree of each effect of use and neglect, how much of time's and the place's effects it lets
 # through (care: 0 keeps rust and moss away, 1 lets it all), the bake's own edge chips and foot grime (bake.survey's
-# wear and grime: 1, 1 is the render of models that declare nothing), and the age it implies when the model declares
-# none.
-Condition = namedtuple("Condition", "name degrees care wear grime age")
+# wear and grime: 1, 1 is the render of models that declare nothing), the age it implies when the model declares
+# none, and how many more effects each island may show (art.VISIBLE's, plus show): a neglected object shows more of
+# its story than a used one, which the effects of use and neglect would otherwise crowd out; show also raises its rest
+# zones' floor (art.rest_floor) and past a worn one dulls it all over (surface.dulled).
+Condition = namedtuple("Condition", "name degrees care wear grime age show", defaults=(0,))
 # An age: the degree of each effect of time.
 Age = namedtuple("Age", "name degrees")
 # An environment: the weight it puts on each effect (1 when missing, but 0 for an effect of PLACED) and the degree of
@@ -40,11 +42,11 @@ MAINTAINED = Condition("maintained", {"edge_wear": 0.15, "chips": 0.05, "grime":
 USED = Condition("used", {"edge_wear": 0.3, "chips": 0.15, "dirt": 0.25, "grime": 0.3, "dust": 0.15, "scuffs": 0.2,
                           "scratches": 0.15, "micro_scratches": 0.2, "fraying": 0.1}, 0.7, 0.0, 0.0, MATURE)
 WORN = Condition("worn", {"edge_wear": 0.55, "chips": 0.4, "dirt": 0.5, "grime": 0.5, "dust": 0.3, "scuffs": 0.4,
-                          "scratches": 0.35, "micro_scratches": 0.3, "fraying": 0.3}, 1.0, 0.0, 0.0, MATURE)
+                          "scratches": 0.35, "micro_scratches": 0.3, "fraying": 0.3}, 1.0, 0.0, 0.0, MATURE, 1)
 NEGLECTED = Condition("neglected", {"edge_wear": 0.6, "chips": 0.55, "dirt": 0.7, "grime": 0.8, "dust": 0.8,
-                                    "scuffs": 0.45, "scratches": 0.4, "fraying": 0.45}, 1.0, 0.0, 0.0, OLD)
+                                    "scuffs": 0.45, "scratches": 0.4, "fraying": 0.45}, 1.0, 0.0, 0.0, OLD, 2)
 RUINED = Condition("ruined", {"edge_wear": 0.85, "chips": 0.85, "dirt": 0.85, "grime": 0.9, "dust": 0.9,
-                              "scuffs": 0.7, "scratches": 0.6, "fraying": 0.7}, 1.0, 0.0, 0.0, ANCIENT)
+                              "scuffs": 0.7, "scratches": 0.6, "fraying": 0.7}, 1.0, 0.0, 0.0, ANCIENT, 3)
 
 # Indoors and dry: dust settles, nothing grows, little rusts, the sun does not fade.
 DRY_INTERIOR = Environment("dry_interior", {"dirt": 0.3, "rust": 0.5, "dust": 1.3, "fading": 0.3})

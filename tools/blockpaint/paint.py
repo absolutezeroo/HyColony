@@ -11,6 +11,8 @@ import brushes
 from bake import lit
 from brushes import average
 from effects import Material
+from composer import compose
+from illustration import illustrate, importance_of
 from models import FACE_AXES, face_size, walk
 from surface import layered
 
@@ -20,8 +22,11 @@ from surface import layered
 Look = namedtuple("Look", "tiles material_of pictures", defaults=(frozenset(),))
 # How a model is painted beyond its look: its seed (each face draws its own pattern, face_seed; None: as always),
 # axes ({node name before Blockbench's '--C<n>': box axis}, the grain of its faces: grain_of), the surface.Surface of
-# its layered materials and the light's mode (shading.graded).
-Painting = namedtuple("Painting", "seed axes surface light", defaults=(None, None, None, "legacy"))
+# its layered materials, the light's mode (shading.graded), its illustration.Illustration and composer.Composer (None:
+# no such pass; either needs a surface recording its islands) and its parts' visual importance ({part: 0..3},
+# illustration.importance_of).
+Painting = namedtuple("Painting", "seed axes surface light illustration composer importance",
+                      defaults=(None, None, None, "legacy", None, None, None))
 
 
 def islands(nodes):
@@ -81,9 +86,21 @@ def grain_of(side, axis):
 
 
 def texture(nodes, size, look, values, painting=Painting()):
-    """The model's finished texture: painted (paint), lit by values (bake.light_map of the model) in painting's light
-    mode (shading.graded), each island bled into its gap (bleed)."""
-    return bleed(lit(paint(nodes, size, look, painting), values, painting.light), nodes)
+    """The model's finished texture: painted (paint), illustrated then composed when painting has an illustration or a
+    composer (illustration.py, composer.py, on the islands its surface recorded), lit by values (bake.light_map of the
+    model) in painting's light mode (shading.graded), each island bled into its gap (bleed)."""
+    image = paint(nodes, size, look, painting)
+    if painting.illustration is not None or painting.composer is not None:
+        records, focus = painting.surface.record, painting.surface.focus
+
+        def level(part):
+            return importance_of(part, painting.importance or {}, focus)
+
+        if painting.illustration is not None:
+            image = illustrate(image, records, painting.illustration, level, painting.surface.condition.show)
+        if painting.composer is not None:
+            image = compose(image, records, painting.composer, level)
+    return bleed(lit(image, values, painting.light), nodes)
 
 
 def bleed(image, nodes):

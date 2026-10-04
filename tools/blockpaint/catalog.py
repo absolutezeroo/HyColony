@@ -32,7 +32,11 @@ A model's module declares:
 - ART, optional with CONDITION: the model's art (art.Art: detail budget, rest zones), else art.Art();
 - HISTORY, optional with CONDITION: what happened to it, a few events (history.py: impact, fire, water…);
 - DECALS, optional on a block model: {name: decals.Decal} small drawings on part of a face or past its border, laid
-  as quads in front of it before the model is laid out, painted as drawings."""
+  as quads in front of it before the model is laid out, painted as drawings;
+- IMPORTANCE, optional: {part: 0 calm, 1 normal, 2 important, 3 major accent}, the parts' visual importance the
+  illustration pass and the composer read (illustration.importance_of);
+- ILLUSTRATION, COMPOSER, optional with CONDITION: its illustration.Illustration and composer.Composer, the passes run
+  between the layers and the light (spec 2026-10-04 blockpaint illustration, composer), their reports printed."""
 
 import json
 import math
@@ -42,11 +46,13 @@ from art import Art
 from bake import light_map, survey
 from brushes import drawing
 from compat import FAMILIES
+from composer_values import GROUP_CENTILES
 from conditions import DEFAULT
 from decals import node_name, place
 from effects import Material, material
 from history import resolved
 from icons import ICON_SIZE, draw_model, frame
+from models import walk
 from pack import save_png, write_json
 from paint import Look, Painting, islands, texture, tiled
 from PIL import Image
@@ -101,7 +107,8 @@ def model_texture(module, nodes, assets):
 
 def module_texture(module, nodes, assets, values, surface):
     """The model's texture from its module's tiles, materials, seed and axes, lit by values: layered with surface in
-    the hytale light, or as before without one."""
+    the hytale light, or as before without one; illustrated and composed when the module declares an ILLUSTRATION or a
+    COMPOSER, their reports printed. Fails on either without a surface."""
     # A copy: the module's own tiles (a module-wide dict) stay as they are.
     tiles = dict(module.tiles(assets))
     if surface is not None:
@@ -109,8 +116,42 @@ def module_texture(module, nodes, assets, values, surface):
     tiles.update(decal_tiles(module, tiles, surface is not None))
     look = Look(tiles, material_of(module), module.PICTURES)
     light = "legacy" if surface is None else "hytale"
-    painting = Painting(getattr(module, "SEED", None), getattr(module, "AXES", None), surface, light)
-    return texture(nodes, texture_size(nodes), look, values, painting)
+    illustration, composer, surface = passes(module, surface)
+    importance = getattr(module, "IMPORTANCE", {})
+    checked(importance, composer.groups if composer is not None else {}, nodes)
+    painting = Painting(getattr(module, "SEED", None), getattr(module, "AXES", None), surface, light, illustration,
+                        composer, importance)
+    image = texture(nodes, texture_size(nodes), look, values, painting)
+    for done in (illustration, composer):
+        for line in done.report if done is not None else ():
+            print(f"  {line}")
+    return image
+
+
+def checked(importance, groups, nodes):
+    """Fails on an importance or a value group (composer.Composer.groups) naming a part the model has not, on an
+    importance out of 0..3 and on an unknown value group."""
+    parts = {n["name"].split("--")[0] for n in walk(nodes)}
+    unknown = sorted((set(importance) | set(groups)) - parts)
+    if unknown:
+        raise SystemExit(f"IMPORTANCE or COMPOSER groups name parts the model has not: {', '.join(unknown)}")
+    wrong = sorted(f"{part} {level}" for part, level in importance.items() if level not in (0, 1, 2, 3))
+    wrong += sorted(f"{part} {group}" for part, group in groups.items() if group not in GROUP_CENTILES)
+    if wrong:
+        raise SystemExit(f"importances are 0 to 3, groups {', '.join(GROUP_CENTILES)}: {', '.join(wrong)}")
+
+
+def passes(module, surface):
+    """(illustration, composer, surface) a module declares (ILLUSTRATION, COMPOSER; None when it does not), each with a
+    report of this paint's own (a module-wide list would gather every paint's in one process), surface recording its
+    islands when either is declared. Fails on either without a surface: both read the layered islands."""
+    declared = [getattr(module, name, None) for name in ("ILLUSTRATION", "COMPOSER")]
+    if all(p is None for p in declared):
+        return None, None, surface
+    if surface is None:
+        raise SystemExit("an ILLUSTRATION or a COMPOSER needs a CONDITION other than DEFAULT: it reads the layers")
+    illustration, composer = (p._replace(report=[]) if p is not None else None for p in declared)
+    return illustration, composer, surface if surface.record is not None else surface._replace(record=[])
 
 
 def material_of(module):

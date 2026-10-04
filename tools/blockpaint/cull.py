@@ -3,11 +3,11 @@
 
 Exact and conservative: a face is hidden when the boxes lying just in front of it, square with it, cover its whole
 rectangle with no gap. A box turned against the face, an open box (one missing a face that neither lies wholly on the
-floor nor is covered by other sealed boxes) or an invisible one hides nothing: one could see past its edge or into
-it. A face an earlier pass dropped keeps sealing its box, so a second pass drops the same faces. A mirrored box (a
-negative stretch) is judged by where its faces are drawn. Moving nodes (animated in their model's blockyanim, and
-their children) neither lose faces nor hide others: their motion uncovers what they cover at rest. cull never adds a
-face back."""
+floor nor is closed by other sealed boxes, in front of it or plugging it from inside) or an invisible one hides
+nothing: one could see past its edge or into it. A face an earlier pass dropped keeps sealing its box, so a second
+pass drops the same faces. A mirrored box (a negative stretch) is judged by where its faces are drawn. Moving nodes
+(animated in their model's blockyanim, and their children) neither lose faces nor hide others: their motion uncovers
+what they cover at rest. cull never adds a face back."""
 
 from models import FACE_NORMALS, add, placed, rotate, walk
 
@@ -60,13 +60,14 @@ def drawn_at(box, side):
 
 
 def sealed(boxes):
-    """The boxes one cannot see into: visible, each missing side lying wholly on the floor (a bottom) or covered by
-    sealed boxes, as an earlier pass left a face others hide. Starts from every visible box and drops those with an
-    open side until none is left (two boxes pressed together seal each other)."""
+    """The boxes one cannot see into: visible, each missing side lying wholly on the floor (a bottom) or closed by
+    sealed boxes, in front of it (as an earlier pass left a face others hide) or plugging it from inside (a pot's stew
+    flush with its open top, a rim round the border). Starts from every visible box and drops those with an open side
+    until none is left (two boxes pressed together seal each other)."""
     inside = [box for box in boxes if box["visible"]]
     while True:
         still_sealed = [box for box in inside if all(
-            on_floor(box, side) or covered(box, side, [other for other in inside if other is not box])
+            on_floor(box, side) or covered(box, side, [other for other in inside if other is not box], True)
             for side in set(FACE_NORMALS) - box["sides"])]
         if len(still_sealed) == len(inside):
             return inside
@@ -82,18 +83,18 @@ def on_floor(box, side):
     return all(to_world(box, corner)[1] <= FLOOR for corner in corners(box) if corner[axis] * sign > 0)
 
 
-def covered(box, side, others):
-    """Whether the boxes others, square with the box and reaching DEPTH in front of its face side, cover all of it;
-    never for a face of a flat box."""
+def covered(box, side, others, plugged=False):
+    """Whether the boxes others, square with the box and reaching DEPTH in front of its face side (or, when plugged,
+    DEPTH behind it too: what fills an opening from inside), cover all of it; never for a face of a flat box."""
     if 0 in box["stretch"] or drawn_at(box, side) is None:
         return False
     axis, sign = drawn_at(box, side)
-    front = sign * (box["half"][axis] + DEPTH)
+    depths = (sign * (box["half"][axis] + DEPTH), sign * (box["half"][axis] - DEPTH))[:2 if plugged else 1]
     across = [i for i in range(3) if i != axis]
     rects = []
     for other in others:
         low, high = extent_in(box, other)
-        if low is not None and low[axis] < front < high[axis]:
+        if low is not None and any(low[axis] < depth < high[axis] for depth in depths):
             rects.append(tuple((low[i], high[i]) for i in across))
     face = tuple((-box["half"][i], box["half"][i]) for i in across)
     return filled(face, rects)

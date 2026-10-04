@@ -59,3 +59,10 @@ def length(a):
 def unit(a):
     size = length(a)
     return scale(a, 1 / size) if size > 1e-9 else a
+
+
+def near(points_a, points_b, reach):
+    """Whether two sets of points come within reach of each other (bounding boxes, widened by reach)."""
+    lo_a, hi_a = [min(p[k] for p in points_a) for k in range(3)], [max(p[k] for p in points_a) for k in range(3)]
+    lo_b, hi_b = [min(p[k] for p in points_b) for k in range(3)], [max(p[k] for p in points_b) for k in range(3)]
+    return all(lo_a[k] - reach <= hi_b[k] and lo_b[k] - reach <= hi_a[k] for k in range(3))

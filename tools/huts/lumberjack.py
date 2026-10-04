@@ -5,7 +5,9 @@ spreading, a pile of three logs behind, a sapling on its mound, wood chips and a
 import math
 
 from brushes import coloured, jitter, metal, painted, stone, wood
+from composer import Composer
 from conditions import FOREST, WORN
+from illustration import Illustration
 from materials import leaf
 
 MODEL = "Blocks/HyColony/Huts/Lumberjack"
@@ -14,6 +16,10 @@ WOOD = (198, 158, 104)
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a felling site, hard worked, in the forest.
 CONDITION, ENVIRONMENT, SEED = WORN, FOREST, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the axe's blade the accent, the split
+# log next, the mound behind.
+IMPORTANCE = {"Axe_Blade": 3, "Axe_Blade_Wide": 3, "Axe_Edge": 3, "Split": 2, "Mound": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"rings_b": "wood", "rings_f": "wood", "rings": "wood", "crack": "wood", "bark": "wood"}
 
 

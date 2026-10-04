@@ -6,7 +6,9 @@ envelope sign; on the desk a leather satchel, two tied parcels, a stamp and its 
 from PIL import ImageDraw
 
 from brushes import as_tile, coloured, jitter, metal, painted, paper, wood
+from composer import Composer
 from conditions import DRY_INTERIOR, USED
+from illustration import Illustration
 from materials import BRASS, LEATHER, leather
 
 MODEL = "Blocks/HyColony/Huts/Courier"
@@ -17,6 +19,10 @@ TWINE = (226, 206, 160)
 PICTURES = frozenset({"sign"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a sorting desk in use, indoors.
 CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the post sign the accent, the satchel,
+# letters and parcel next, the cabinet's back behind.
+IMPORTANCE = {"Sign": 3, "Satchel": 2, "Satchel_Flap": 2, "Letters_D": 2, "Parcel_1": 2, "Cab_Back": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"letters": "paper", "parcel": "paper", "leather": "leather", "strap": "leather", "ink": "liquid",
           "sign": "wood", "brass": "cuprous"}
 # Node name prefix -> material.

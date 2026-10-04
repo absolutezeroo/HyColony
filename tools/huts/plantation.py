@@ -4,7 +4,9 @@ plantation grows, as Hytale has them (Plant_Reeds_*, bamboo, cactus): reeds with
 tied with twine, a cactus in a terracotta pot; a water channel along its front."""
 
 from brushes import cloth, coloured, jitter, painted, stone, terracotta, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, USED
+from illustration import Illustration
 from materials import leaf, rope
 
 MODEL = "Blocks/HyColony/Huts/Plantation"
@@ -12,6 +14,10 @@ ICON = "Hut_Plantation"
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a planter in use, outdoors.
 CONDITION, ENVIRONMENT, SEED = USED, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the cactus' flower the accent, the
+# cactus, bamboo and water next, the trough's back behind.
+IMPORTANCE = {"Cactus_Flower": 3, "Cactus": 2, "Bamboo_2": 2, "Water": 2, "Trough_B": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"water": "liquid", "reed": "plant", "reed_head": "plant", "bamboo": "plant", "cactus": "plant",
           "flower": "plant"}
 # Node name prefix -> material, the first that matches.

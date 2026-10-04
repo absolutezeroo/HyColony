@@ -4,13 +4,20 @@ lintel, a hollow minecart on its rails filled with stone and ore, two ore boulde
 jutting out, as Hytale's ore blocks), a pick driven into the one behind, on the diagonal towards the cart."""
 
 from brushes import coloured, crystal, metal, painted, stone, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, WORN
+from illustration import Illustration
+from materials import BOARD
 
 MODEL = "Blocks/HyColony/Huts/Miner"
 ICON = "Hut_Miner"
 PICTURES = frozenset({"void"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a mine entrance, hard worked, outdoors.
 CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the gold vein the accent, the lantern
+# and pick next, the shaft's mouth behind.
+IMPORTANCE = {"Gem_Gold_R1": 3, "Lantern": 2, "Lantern_Cap": 2, "Pick_Eye": 2, "Void": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 # The shaft's dark mouth is drawn (PICTURES): a hole in the rock takes no wear, only what settles in it.
 FAMILY = {"void": "stone", "gold": "noble", "copper": "cuprous"}
 # The ore crystals glint now and then, without breathing (glint.py).
@@ -34,7 +41,8 @@ def tiles(assets):
     """Material -> its 32 px tile or brush."""
     return {
         "frame": wood((104, 70, 44), plank=99), "void": painted(lambda x, y, w, h, side: coloured((22, 20, 24), 1)),
-        "rail": metal((120, 124, 132)), "sleeper": wood((112, 80, 52), plank=99), "cart": wood((132, 92, 58), plank=3),
+        "rail": metal((120, 124, 132)), "sleeper": wood((112, 80, 52), plank=99),
+        "cart": wood((132, 92, 58), plank=BOARD),
         "iron": metal((84, 86, 94)), "rock": stone((122, 118, 112)), "handle": wood((140, 96, 58), plank=99),
         "gold": crystal((255, 236, 150), (232, 182, 58), (150, 96, 20)),
         "copper": crystal((255, 190, 150), (214, 112, 64), (120, 52, 28)),

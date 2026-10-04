@@ -8,8 +8,10 @@ import math
 from PIL import ImageDraw
 
 from brushes import as_tile, cloth, crystal, jitter, metal, stone, terracotta, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, USED
-from materials import leaf
+from illustration import Illustration
+from materials import BOARD, leaf
 from models import multiply, walk
 from motion import about
 
@@ -31,6 +33,10 @@ ICON = "Hut_Farmer"
 PICTURES = frozenset({"can_top"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a potting bench in use, outdoors.
 CONDITION, ENVIRONMENT, SEED = USED, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the watering can the accent, the fork,
+# pumpkin and sack next, the back board behind.
+IMPORTANCE = {"Can": 3, "Can_Rose": 3, "Can_Spout": 3, "Fork_Head": 2, "Pumpkin": 2, "Sack": 2, "Back_Board": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"soil": "stone", "can_top": "cuprous", "water": "liquid", "copper": "cuprous", "seeds": "plant",
           "pumpkin": "plant", "stem": "plant", "carrot": "plant"}
 # The drop is shown only part of the time: it casts no baked shadow.
@@ -60,7 +66,8 @@ def material(name, side):
 def tiles(_assets):
     """Material -> its 32 px tile or brush."""
     return {
-        "frame": wood((116, 80, 48)), "planks": wood((160, 118, 72), plank=6), "slats": wood((134, 96, 58), plank=3),
+        "frame": wood((116, 80, 48)), "planks": wood((160, 118, 72), plank=6),
+        "slats": wood((134, 96, 58), plank=BOARD),
         "handle": wood((150, 112, 70), plank=99), "soil": wet_soil(stone((88, 62, 44), chunk=(2, 2))),
         "clay": terracotta((166, 96, 60)), "leaf": leaf((86, 148, 58)), "copper": metal(COPPER), "can_top": can_top(),
         "water": crystal((168, 214, 244), (86, 150, 210), (40, 92, 160)),

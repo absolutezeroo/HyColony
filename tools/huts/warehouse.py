@@ -5,18 +5,26 @@ brass scale with a stack of gold coins."""
 
 from PIL import ImageDraw
 
-from brushes import as_tile, cloth, coloured, jitter, metal, painted, terracotta, wood
+from brushes import as_tile, cloth, coloured, jitter, metal, terracotta, wood
+from composer import Composer
 from conditions import DRY_INTERIOR, USED
-from materials import BRASS
+from illustration import Illustration
+from materials import BARREL_JOINT, BARREL_STAVE, BOARD, BRASS, staves
 
 MODEL = "Blocks/HyColony/Huts/Warehouse"
 ICON = "Hut_Warehouse"
 CRATE = (168, 126, 80)
 STAVE = (138, 92, 56)
+# The barrel's iron hoops.
+HOOP = (58, 56, 60)
 # Materials drawn for their island, never turned.
 PICTURES = frozenset({"ledger"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a stockroom in use, indoors.
 CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the stock ledger the accent, the scale,
+# the big crate and the coins next, the rack's back behind.
+IMPORTANCE = {"Ledger": 3, "Scale": 2, "Scale_Post": 2, "Scale_Beam": 2, "Big_Crate": 2, "Coins": 2, "Rack_Back": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"label": "wood", "ledger": "paper", "barrel": "wood", "leather": "leather", "brass": "cuprous",
           "gold": "noble"}
 # Node name prefix -> material.
@@ -42,8 +50,9 @@ def tiles(_assets):
     """Material -> its 32 px tile or brush."""
     return {
         "frame": wood((96, 64, 40)), "planks": wood((140, 102, 64), plank=6), "boards": wood((118, 82, 52), plank=4),
-        "burlap": cloth((176, 146, 98), folds=0.06), "crate": wood(CRATE, plank=3), "label": label(),
-        "leather": wood((96, 42, 34), plank=99), "ledger": ledger(), "barrel": barrel(), "lid": wood(STAVE, plank=2),
+        "burlap": cloth((176, 146, 98), folds=0.06), "crate": wood(CRATE, plank=BOARD), "label": label(),
+        "leather": wood((96, 42, 34), plank=99), "ledger": ledger(), "barrel": barrel(),
+        "lid": wood(STAVE, plank=BOARD),
         "brass": metal(BRASS), "gold": metal((226, 184, 74)), "string": cloth((150, 116, 72), folds=0.02),
         "red_cloth": cloth((150, 40, 42)), "blue_cloth": cloth((52, 82, 150)), "clay": terracotta((158, 96, 62)),
     }
@@ -51,7 +60,7 @@ def tiles(_assets):
 
 def label():
     """A crate's front: its slats, with a cream paper label in the middle written in two short dark lines."""
-    slats = wood(CRATE, plank=3)
+    slats = wood(CRATE, plank=BOARD)
 
     def brush(w, h, side):
         image = slats(w, h, side)
@@ -66,13 +75,19 @@ def label():
 
 
 def barrel():
-    """Barrel staves: vertical boards of slightly different tones, girded by two dark iron hoops on the sides."""
-    def rule(x, y, w, h, side):
-        if side not in ("top", "bottom") and h > 4 and y in (h // 5, h - 1 - h // 5):
-            return coloured((58, 56, 60), 1 + 0.05 * jitter(x, 43))
-        k = 1 + 0.08 * jitter(x // 2, 44) + 0.03 * jitter(x * 7 + y * 3, 45) - (0.12 if x % 2 == 0 else 0)
-        return coloured(STAVE, k)
-    return painted(rule)
+    """Barrel staves as Hytale's village barrels paint them (materials.BARREL_STAVE wide, soft joints), girded by two
+    iron hoops on the sides, each two texels wide, lit along its top."""
+    wood_staves = staves(STAVE, BARREL_STAVE, BARREL_JOINT)
+
+    def brush(w, h, side):
+        image = wood_staves(w, h, side)
+        if side not in ("top", "bottom") and h > 6:
+            for y in (h // 5, h - 2 - h // 5):
+                for x in range(w):
+                    image.putpixel((x, y), coloured(HOOP, 1.25 + 0.05 * jitter(x // 2, 43)))
+                    image.putpixel((x, y + 1), coloured(HOOP, 0.95 + 0.05 * jitter(x // 2, 44)))
+        return image
+    return brush
 
 
 def ledger():

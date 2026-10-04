@@ -7,7 +7,9 @@ detail painted on them; the flowers sway in a light breeze (animation)."""
 import math
 
 from brushes import cloth, coloured, metal, painted, stone, terracotta, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, USED
+from illustration import Illustration
 from materials import BUCKET_INSIDE, BUCKET_WOOD, leaf, staves
 from models import walk
 from motion import blockyanim, leaning, track, wave
@@ -17,6 +19,12 @@ ICON = "Hut_Florist"
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a flower stand in use, outdoors.
 CONDITION, ENVIRONMENT, SEED = USED, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): a red rose the accent, a tulip, a
+# daisy and the bucket next, the low tier behind.
+IMPORTANCE = {"Rose_Red_L22_Out": 3, "Rose_Red_L22_Core": 3, "Tulip_Red_C1": 2, "Daisy_Yellow_C2_A": 2,
+              "Daisy_Yellow_C2_B": 2, "Bucket_F": 2, "Bucket_B": 2, "Bucket_L": 2, "Bucket_R": 2, "Bucket_Bottom": 2,
+              "Tier_Low": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 # The breeze: each flower (a node Stem_*, pivoting at its base, its head its child) nods to and fro NOD_DEGREES and
 # sways side to side SWAY_DEGREES over the loop of LOOP_TICKS (1/60 s), all at the same pace. The flowers of a pot (or
 # of the bucket) move nearly as one, a hair apart, so that they never swing into each other; the pots are out of step.

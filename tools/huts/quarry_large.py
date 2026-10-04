@@ -4,7 +4,9 @@ stones and lashed at the top, a pulley, a rope down to a hook and a cut block ha
 winch with its crank between the front legs, cut blocks below. The hanging load swings gently (animation)."""
 
 from brushes import metal, stone, wood
+from composer import Composer
 from conditions import TEMPERATE_OUTDOOR, WORN
+from illustration import Illustration
 from materials import CUT_STONE, ROCK, rope
 from motion import blockyanim, leaning, track, wave
 
@@ -13,6 +15,10 @@ ICON = "Hut_Quarry_Large"
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a quarry's sheerlegs, hard worked, outdoors.
 CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the hung block the accent, the drum
+# and hook next, the ground behind.
+IMPORTANCE = {"Hung": 3, "Drum": 2, "Drum_Coil": 2, "Hook": 2, "Ground_1": 0}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 # The hanging load, as a heavy block on a rope moves: it turns slowly on the rope, TWIST_DEGREES each way over the
 # loop of LOOP_TICKS (1/60 s, the blockyanim time unit), and barely swings, a pendulum of about a block of rope
 # (period 2 s, SWING_CYCLES in the loop), SWING_DEGREES to and fro and a little less side to side. At every key the

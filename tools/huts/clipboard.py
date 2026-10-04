@@ -6,8 +6,10 @@ rivets) and an ochre pencil held on the right by a leather loop."""
 from PIL import ImageDraw
 
 from brushes import as_tile, metal, paper, wood
+from composer import Composer
 from conditions import MAINTAINED
 from icons import turned
+from illustration import Illustration
 from materials import BRASS, LEATHER, PAPER, leather
 
 MODEL = "Items/HyColony/Clipboard"
@@ -18,6 +20,10 @@ ICON_VIEW = turned(-70, 12, -8)
 PICTURES = frozenset({"written"})
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): a clipboard carried every day, kept with care.
 CONDITION, SEED = MAINTAINED, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): the written sheet the accent, the
+# clip next.
+IMPORTANCE = {"Paper": 3, "Clip_Plate": 2}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"written": "paper", "tip": "wood", "leather": "leather", "brass": "cuprous"}
 INK = (112, 92, 78, 255)
 TITLE = (150, 64, 50, 255)

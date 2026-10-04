@@ -99,8 +99,15 @@ def averaged(image, groups):
     return out
 
 
-def rest(t, declared):
-    """The weight of an effect's mask at texel t: whole near an open border, contact, impact or focus, REST far from
-    them all."""
+def rest(t, declared, floor=REST):
+    """The weight of an effect's mask at texel t: whole near an open border, contact, impact or focus, floor (REST
+    unless rest_floor raises it) far from them all."""
     near = max(0.0, 1.0 - t.rim / 3, declared.contact, declared.impact, declared.focus)
-    return REST + (1 - REST) * min(1.0, near)
+    return floor + (1 - floor) * min(1.0, near)
+
+
+def rest_floor(show):
+    """The rest zones' floor (rest) of a model whose condition shows show more effects (conditions.Condition.show):
+    REST for a used one, rising to 1 (no rest at all) at 3, a ruined one: the more neglected, the more every face
+    carries its story."""
+    return REST + (1 - REST) * min(1.0, show / 3)

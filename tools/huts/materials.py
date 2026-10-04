@@ -58,18 +58,24 @@ BUCKET_INSIDE = frozenset({("Bucket_Bottom", "top"), ("Bucket_F", "back"), ("Buc
 # grain on top. BUCKET_WOOD: the colour of Hytale's bucket staves (69, 39, 21), lightened as our props are (their
 # light is baked): both measured in docs/research/blockpaint-surfaces.md § 7.
 STAVE, STAVE_JOINT, STAVE_SHADE, STAVE_END = 3, 0.58, 0.1, 0.12
+# The narrowest board (texels) of a crate, a cart or a barrel: Hytale's furniture paints its boards 4 to 5 texels
+# wide (docs/research/blockpaint-surfaces.md § 8); narrower ones read as stripes.
+BOARD = 4
+# A barrel's staves (BARREL_STAVE texels wide) and how dark their joints: Hytale's village barrels paint staves 6 to 7
+# texels wide, their joints fine and softer than a bucket's (Decorative_Sets/Village/Barrel_*.png).
+BARREL_STAVE, BARREL_JOINT = 6, 0.74
 BUCKET_WOOD = (112, 62, 34)
 
 
 @family("wood")
-def staves(rgb, width=STAVE):
+def staves(rgb, width=STAVE, joint=STAVE_JOINT):
     """A coopered bucket's wood, as Hytale's bucket paints it: upright staves width texels wide, each lit on its left
-    and a little darker on its right, its own shade, a faint grain up its length, a dark joint between two; on top,
-    the staves' light end grain."""
+    and a little darker on its right, its own shade, a faint grain up its length, a joint between two darkened to
+    joint (a share of rgb); on top, the staves' light end grain."""
     def rule(x, y, w, h, side):
         stave, place = divmod(x, width)
         if place == width - 1:
-            return coloured(rgb, STAVE_JOINT)
+            return coloured(rgb, joint)
         k = 1 + STAVE_SHADE * jitter(stave, 61) + (0.05 if place == 0 else -0.04)
         if side == "top":
             return coloured(rgb, k + STAVE_END)

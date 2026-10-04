@@ -6,7 +6,9 @@ two brass bands, and a cut cyan crystal set through the head in a brass bezel.""
 from PIL import ImageDraw
 
 from brushes import crystal, metal, wood
+from composer import Composer
 from conditions import MAINTAINED
+from illustration import Illustration
 from materials import BRASS, CYAN, LEATHER, leather
 from icons import turned
 
@@ -18,6 +20,9 @@ ICON_VIEW = turned(70, 15, 45)
 PICTURES = frozenset()
 # Painted in layers (spec 2026-10-03 blockpaint surfaces): an architect's own tool, kept with care.
 CONDITION, SEED = MAINTAINED, 11
+# Illustrated and composed (specs 2026-10-04 blockpaint illustration, composer): its gems the accent, its face next.
+IMPORTANCE = {"Gem_L": 3, "Gem_R": 3, "Gem_L_Table": 3, "Gem_R_Table": 3, "Face": 2}
+ILLUSTRATION, COMPOSER = Illustration(), Composer()
 FAMILY = {"wrap": "leather", "brass": "cuprous"}
 # The two cut crystals and their tables breathe and glint (glint.py).
 GLINT = "Gem"

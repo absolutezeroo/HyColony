@@ -47,11 +47,11 @@ def rust_mask(t, island, i, j):
 
 
 def dust_mask(t, d, island, i, j):
-    """Where dust settles: on what faces the sky, less where hands brush it off, and it clings to grease (the sticky
-    signal) whichever way the face turns."""
+    """Where dust settles: on what faces up, open to the sky or under cover (a worktop under shelves gathers it too),
+    less where hands brush it off, and it clings to grease (the sticky signal) whichever way the face turns."""
     sticky = island.signal("sticky")
     clings = any((i + di, j + dj) in sticky for di in (-1, 0, 1) for dj in (-1, 0, 1))
-    return clamp(maps.sky(t) * (1 - 0.7 * d.contact) + (STICKY_DUST if clings else 0.0))
+    return clamp(maps.up(t) * (1 - 0.7 * d.contact) + (STICKY_DUST if clings else 0.0))
 
 
 EFFECTS = {

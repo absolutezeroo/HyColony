@@ -79,6 +79,12 @@ class ContentTest(unittest.TestCase):
         self.assertTrue(self.amounts("dust", self.island("Lid", "top", WOOD, "wood"), 0.6))
         self.assertEqual({}, self.amounts("dust", self.island("Body", "front", WOOD, "wood"), 0.6))
 
+    def test_dust_settles_on_a_top_face_under_cover_too(self):
+        # A worktop under a hutch's shelves sees no sky, yet dust settles on it all the same.
+        island = self.island("Lid", "top", WOOD, "wood")
+        island.texels.update({cell: t._replace(occlusion=0.7) for cell, t in island.texels.items()})
+        self.assertTrue(self.amounts("dust", island, 0.6))
+
     def test_dirt_rises_from_the_ground(self):
         # The body stands on its feet, 2 units up: dirt reaches it only at a high degree, and only low down.
         island = self.island("Body", "front", WOOD, "wood")
@@ -193,6 +199,20 @@ class PaintSurfaceTest(unittest.TestCase):
         top = next(r for r in paint.islands(nodes) if r[:2] == ("Lid", "top"))
         u, v, w, h = top[2:]
         self.assertGreater(len(set(image.crop((u, v, u + w, v + h)).get_flattened_data())), 1)
+
+    def test_a_neglected_model_is_dulled_all_over_and_a_worn_one_is_not(self):
+        plain = {"wood": effects.material(WOOD, family="wood"), "iron": effects.material(iron())}
+        clean, _ = self.layered_crate(plain, condition=conditions.PRISTINE)
+        neglected, _ = self.layered_crate(plain, condition=conditions.PRISTINE._replace(show=2))
+
+        def saturation(image):
+            hsv = image.convert("RGB").convert("HSV").get_flattened_data()
+            return sum(p[1] for p in hsv) / len(hsv)
+
+        self.assertLess(saturation(neglected), saturation(clean) * 0.85)
+        # Worn (show 1) wears without going dull yet: its materials stay as far apart as a used one's.
+        worn, _ = self.layered_crate(plain, condition=conditions.PRISTINE._replace(show=conditions.WORN.show))
+        self.assertEqual(clean.tobytes(), worn.tobytes())
 
     def test_a_material_s_own_effects_and_the_usage_reach_the_paint(self):
         plain = {"wood": effects.material(WOOD, family="wood"), "iron": effects.material(iron())}

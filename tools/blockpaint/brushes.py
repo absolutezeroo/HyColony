@@ -12,6 +12,15 @@ from PIL import Image
 
 # Mixes the face seed into jitter's hash; a seed of 0 leaves every value as it was before seeds existed.
 SEED_MIX = 2246822519
+# The narrowest board (texels) that takes a light bevel beside its seam: a narrower one would be all edge, stripes.
+BEVELLED = 4
+# How much lighter a board is by its bevel than by its seam (a share of its colour).
+BOARD_ROUND = 0.2
+# The size (texels) of a brush's stroke where a texel-by-texel pattern reads as specks (cloth's mottle, metal's
+# streaks): Hytale paints those in strokes of 2 to 3 texels (docs/research/blockpaint-surfaces.md § 8).
+STROKE = 2.5
+# The side (texels) of a touch (touch): Hytale's cloth and clay show patches of about two texels of one tone.
+TOUCH = 2
 _face = {"seed": 0, "grain": None}
 
 
@@ -102,6 +111,12 @@ def smooth2(x, y, salt):
     return top * (1 - fy) + bottom * fy
 
 
+def touch(x, y, salt):
+    """A value in [-1, 1] constant over each TOUCH x TOUCH patch of texels, its own per patch: a painter's touch,
+    where a value per texel reads as specks and a smooth noise as no stroke at all."""
+    return jitter((x // TOUCH) * 7919 + (y // TOUCH) * 104729, salt)
+
+
 def mix(a, b, t):
     t = max(0.0, min(1.0, t))
     return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
@@ -146,10 +161,10 @@ def as_tile(brush):
 
 @family("ferrous")
 def metal(rgb, streak=0.07, band=0.13):
-    """Brushed metal: streaks along the island's long side, a soft highlight band a third down side faces, sparse
-    bright flecks."""
+    """Brushed metal: broad streaks along the island's long side (STROKE texels across, not one per row), a soft
+    highlight band a third down side faces, sparse bright flecks."""
     def rule(x, y, w, h, side):
-        k = 1 + streak * jitter(along(x, y, w, h)[1], 7) + 0.02 * jitter(x * 31 + y, 3)
+        k = 1 + streak * smooth(along(x, y, w, h)[1] / STROKE, 7) + 0.02 * jitter(x * 31 + y, 3)
         if side not in ("top", "bottom") and h > 2:
             k += band * max(0.0, 1 - abs(y / (h - 1) - 0.3) * 4)
         if jitter(x * 13 + y * 7, 11) > 0.93:
@@ -160,21 +175,28 @@ def metal(rgb, streak=0.07, band=0.13):
 
 @family("wood")
 def wood(rgb, plank=8):
-    """Painted wood, as Hytale's props: long grain strokes along the island's long side, broken now and then, a
-    darker seam every plank width across wide faces, an odd knot, the colour drifting softly along each plank."""
+    """Painted boards, as Hytale's furniture paints them (docs/research/blockpaint-surfaces.md § 8): each board its own
+    shade drifting slowly along it, across wide faces a dark seam with a light bevel on the next board's edge (boards
+    of BEVELLED texels and more), a calm inside crossed by a few long faint fibres along the island's long side, an odd
+    knot."""
     def rule(x, y, w, h, side):
         a, b, width = (x, y, h) if along_u(w, h) else (y, x, w)
-        board = b // plank
-        k = 1 + 0.06 * jitter(board, 5) + 0.05 * smooth(a / 6 + board * 3.1, board)
-        grain = jitter(b * 7 + board, 9)
-        if grain > 0.55 and jitter((a // 3) * 11 + b, 4) > -0.6:
-            k -= 0.11 if grain > 0.8 else 0.06
-        elif grain < -0.85:
-            k += 0.05
-        if width > plank and b % plank == plank - 1:
-            k -= 0.22
+        board, place = divmod(b, plank)
+        k = 1 + 0.07 * jitter(board, 5) + 0.05 * smooth(a / 9 + board * 3.1, board)
+        # Rounded as Hytale paints a board, lighter by its bevel and darker towards its seam; an island no wider than
+        # a board (a post, a leg) is one board, rounded across its width.
+        span = plank if width > plank else width
+        if span >= BEVELLED:
+            k += BOARD_ROUND * (0.5 - (b % span) / (span - 1))
+        # Hytale keeps a board's inside calm: a fibre is a whole row, faint, broken only in long runs.
+        if jitter(b * 7 + board, 9) > 0.55 and jitter((a // 5) * 11 + b, 4) > -0.3:
+            k -= 0.08
+        if width > plank and place == plank - 1:
+            k -= 0.24
+        elif width > plank and place == 0 and board and plank >= BEVELLED:
+            k += 0.09
         if jitter(a // 2 * 13 + b // 2 * 29 + board, 21) > 0.985:
-            k -= 0.25
+            k -= 0.2
         return coloured(rgb, k)
     return painted(rule)
 
@@ -212,9 +234,10 @@ def paper(rgb, aged=(176, 150, 104)):
 
 @family("textile")
 def cloth(rgb, folds=0.10):
-    """Woven cloth: a fine weave, soft vertical folds down side faces (hanging fabric), a gentler ripple on top."""
+    """Woven cloth: a faint weave, soft vertical folds down side faces (hanging fabric), a gentler ripple on top."""
     def rule(x, y, w, h, side):
-        k = 1 + 0.035 * (1 if (x + y) % 2 else -1) + 0.02 * jitter(x * 7 + y * 13, 6)
+        # Hytale's cloth reads by its folds; a stronger weave is a checkerboard of specks.
+        k = 1 + 0.012 * (1 if (x + y) % 2 else -1) + 0.07 * touch(x, y, 6)
         if side in ("top", "bottom"):
             k += 0.4 * folds * smooth((x + y) / 4, 3)
         else:
@@ -225,7 +248,8 @@ def cloth(rgb, folds=0.10):
 
 @family("stone")
 def stone(rgb, chunk=(4, 3)):
-    """Stone: irregular chunks of their own tone, dark cracks between them, light and dark specks."""
+    """Stone: irregular chunks of their own tone, dark cracks between them broken now and then, light and dark
+    specks."""
     cw, ch = chunk
 
     def rule(x, y, w, h, side):
@@ -234,8 +258,9 @@ def stone(rgb, chunk=(4, 3)):
         cell = ((x + shift) // cw, row)
         k = 1 + 0.10 * jitter(cell[0] * 37 + cell[1] * 101, 4) + 0.05 * jitter(x * 19 + y * 23, 5)
         on_crack = (x + shift) % cw == 0 or y % ch == 0
-        if on_crack and jitter(x * 3 + y * 5, 12) > -0.4:
-            k -= 0.2
+        # A crack breaks in runs of three texels, not texel by texel (a dotted line reads as noise).
+        if on_crack and jitter((x // 3) * 3 + (y // 3) * 5, 12) > -0.2:
+            k -= 0.16
         if jitter(x * 41 + y * 7, 14) > 0.95:
             k += 0.15
         return coloured(rgb, k)
@@ -268,7 +293,7 @@ def terracotta(rgb):
     """Thrown terracotta (flower pots): a faint warm mottle, soft throwing rings round side faces (the same rows on
     every wall, so split walls line up), fine light grains of sand."""
     def rule(x, y, w, h, side):
-        k = 1 + 0.03 * smooth(x / 5 + y * 0.3, y // 5) + 0.015 * jitter(x * 29 + y * 11, 22)
+        k = 1 + 0.03 * smooth(x / 5 + y * 0.3, y // 5) + 0.07 * touch(x, y, 22)
         if side not in ("top", "bottom"):
             k += 0.04 * smooth(y / 1.5, 23)
         if jitter(x * 61 + y * 43, 24) > 0.94:
@@ -291,10 +316,10 @@ def embers():
 
 @family("ceramic")
 def clay(rgb):
-    """Fired clay (bricks): a soft mottle and scattered dark pores."""
+    """Fired clay (bricks): a soft mottle and a few dark pores."""
     def rule(x, y, w, h, side):
-        k = 1 + 0.07 * smooth(x / 3 + y * 0.5, y // 3) + 0.03 * jitter(x * 29 + y * 11, 18)
-        if jitter(x * 61 + y * 43, 19) > 0.9:
+        k = 1 + 0.07 * smooth(x / 3 + y * 0.5, y // 3) + 0.03 * smooth2(x / STROKE, y / STROKE, 18)
+        if jitter(x * 61 + y * 43, 19) > 0.96:
             k -= 0.16
         return coloured(rgb, k)
     return painted(rule)

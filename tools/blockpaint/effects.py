@@ -33,8 +33,9 @@ SOFT_AMOUNT, SOFT_BAND = 0.5, 0.15
 # ({effect: weight}, multiplying compat's: 0 forbids an effect on it, as a stainless steel forbids rust).
 Material = namedtuple("Material", "substrate family coats effects weights")
 # How a run goes on a face: the part's declared maps (roles.Declared), the seed of its clusters, whether rest zones
-# damp the planned effects (art.rest) and whether a deposit over a more useful one is left out (run).
-Pass = namedtuple("Pass", "declared seed rest fight", defaults=(0, False, False))
+# damp the planned effects (art.rest), whether a deposit over a more useful one is left out (run) and the rest zones'
+# floor (art.rest_floor: a neglected model rests less).
+Pass = namedtuple("Pass", "declared seed rest fight floor", defaults=(0, False, False, art.REST))
 
 
 def clamp(v):
@@ -103,7 +104,7 @@ def reached(effect, island, degree, how):
         mask = effect.mask(t, how.declared, island, i, j) * compat.weight(effect.name, island.family_at(i, j)) * own
         # An event marks where it happened: rest zones only damp the planned effects.
         if how.rest and effect.moment not in EVENT_MOMENTS:
-            mask *= art.rest(t, how.declared)
+            mask *= art.rest(t, how.declared, how.floor)
         if mask > 0:
             clusters = cluster(t.point, effect.scale, how.seed, effect.name)
             scores[i, j] = mask * (1 - effect.spread + effect.spread * clusters)

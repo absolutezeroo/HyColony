@@ -13,6 +13,7 @@ import catalog
 import conditions
 import critique
 import effects
+import layers
 import paint
 import roles
 import surface
@@ -232,6 +233,18 @@ class RestAndCountTest(unittest.TestCase):
         touched = effects.reached(everywhere, island, 0.5, effects.Pass(roles.Declared(contact=1.0), 1, rest=True))
         self.assertEqual(len(busy), len(touched))
 
+    def test_a_neglected_model_s_rest_zones_damp_its_effects_less_and_a_ruined_one_s_not_at_all(self):
+        self.assertEqual(art.REST, art.rest_floor(0))
+        self.assertGreater(art.rest_floor(2), art.rest_floor(1))
+        self.assertEqual(1.0, art.rest_floor(3))
+        island = front_island(flat(STEEL))
+        everywhere = effects.Effect("everywhere", "degrade", lambda t, d, isl, i, j: 0.8, lambda isl, a: None)
+        busy = effects.reached(everywhere, island, 0.5, effects.Pass(roles.Declared(), 1))
+        ruined = effects.reached(everywhere, island, 0.5, effects.Pass(roles.Declared(), 1, True, floor=1.0))
+        resting = effects.reached(everywhere, island, 0.5, effects.Pass(roles.Declared(), 1, True))
+        self.assertEqual(busy, ruined)
+        self.assertLess(len(resting), len(ruined))
+
     def test_an_event_marks_where_it_happened_rest_zones_or_not(self):
         island = front_island(flat(STEEL))
         mark = effects.Effect("mark", "recent", lambda t, d, isl, i, j: 0.8, lambda isl, a: None)
@@ -245,6 +258,42 @@ class RestAndCountTest(unittest.TestCase):
         kept = [e.name for e, _ in surface.most_useful(uses, wood, "medium")]
         self.assertEqual(["edge_wear", "chips", "grime"], kept)
         self.assertEqual(2, len(surface.most_useful(uses, wood, "low")))
+
+    def test_an_effect_that_cannot_reach_its_island_leaves_its_place_to_the_next(self):
+        names = ("dirt", "edge_wear", "chips", "grime")
+        uses = [(weathering.EFFECTS[n], d) for n, d in zip(names, (0.9, 0.5, 0.4, 0.3))]
+        wood = effects.material(flat(STEEL), family="wood")
+        kept = [e.name for e, _ in surface.most_useful(uses, wood, "low", lambda e, d, k: e.name != "dirt")]
+        self.assertEqual(["edge_wear", "chips"], kept)
+
+    def test_a_neglected_model_shows_more_effects_on_an_island_than_a_used_one(self):
+        self.assertEqual(0, conditions.USED.show)
+        self.assertLess(conditions.WORN.show, conditions.NEGLECTED.show)
+        self.assertLess(conditions.NEGLECTED.show, conditions.RUINED.show)
+        names = ("edge_wear", "chips", "dirt", "grime", "dust", "scuffs")
+        uses = [(surface.CATALOGUE[n], 0.5) for n in names]
+        wood = effects.material(flat(STEEL), family="wood")
+        self.assertEqual(art.VISIBLE["medium"] + conditions.NEGLECTED.show,
+                         len(surface.most_useful(uses, wood, "medium", extra=conditions.NEGLECTED.show)))
+
+    def test_dirt_cannot_reach_a_part_high_off_the_ground_but_wear_can(self):
+        nodes = model(("Block", (0, 40, 0), (16, 16, 16)))
+        unwrap(nodes)
+        _, contexts = bake.survey(nodes, grounded=True, wear=0.0, grime=0.0)
+        u, v, w, h = next(r for r in paint.islands(nodes) if r[:2] == ("Block", "front"))[2:]
+        texels = {(i, j): contexts[u + i, v + j] for i in range(w) for j in range(h)}
+        wood = effects.material(lambda w, h, side: Image.new("RGBA", (w, h), (150, 104, 62, 255)), family="wood")
+        island = layers.Island(wood.substrate(w, h, "front"), texels, wood, "front")
+        how = effects.Pass(roles.Declared(), 3)
+        self.assertFalse(surface.reachable(weathering.EFFECTS["dirt"], 0.9, island, how, []))
+        self.assertTrue(surface.reachable(weathering.EFFECTS["edge_wear"], 0.6, island, how, []))
+
+    def test_an_effect_reading_a_signal_is_kept_when_a_kept_effect_writes_it(self):
+        island = front_island(flat(STEEL))
+        how = effects.Pass(roles.Declared(), 3)
+        rust = weathering.EFFECTS["rust"]
+        writer = next(e for e in weathering.EFFECTS.values() if set(rust.reads) & set(e.writes))
+        self.assertTrue(surface.reachable(rust, 0.9, island, how, [(writer, 0.5)]))
 
     def test_an_effect_the_material_forbids_takes_no_place(self):
         uses = [(weathering.EFFECTS["rust"], 0.9), (weathering.EFFECTS["edge_wear"], 0.5),

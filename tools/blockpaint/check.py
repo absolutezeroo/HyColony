@@ -243,6 +243,26 @@ class CullTest(unittest.TestCase):
                  node("X", (8, 2, 0), box_shape((4, 4, 4), SIDES))]
         self.assertEqual([("Z", "right")], cull.cull(nodes))
 
+    def test_a_box_open_on_top_but_plugged_by_a_lid_inside_and_a_rim_above_hides_the_lid_s_buried_faces(self):
+        # A pot open on top, its stew flush with the opening inside it and a rim one unit above round its border:
+        # one cannot see into the pot, so the stew's sides and bottom, buried in it, go and its top stays.
+        open_top = tuple(s for s in SIDES if s != "top")
+        nodes = [node("Pot", (0, 3, 0), box_shape((8, 6, 8), open_top)),
+                 node("Stew", (0, 5.5, 0), box_shape((6, 1, 6), SIDES)),
+                 node("Rim_F", (0, 6.5, 3.5), box_shape((8, 1, 1), SIDES)),
+                 node("Rim_B", (0, 6.5, -3.5), box_shape((8, 1, 1), SIDES)),
+                 node("Rim_L", (-3.5, 6.5, 0), box_shape((1, 1, 6), SIDES)),
+                 node("Rim_R", (3.5, 6.5, 0), box_shape((1, 1, 6), SIDES))]
+        cull.cull(nodes)
+        self.assertEqual({"top"}, sides_of(nodes)["Stew"])
+
+    def test_a_box_open_on_top_and_plugged_only_in_its_middle_hides_nothing(self):
+        # Without the rim, the opening's border shows the inside of the pot, and the stew's sides in it.
+        nodes = [node("Pot", (0, 3, 0), box_shape((8, 6, 8), tuple(s for s in SIDES if s != "top"))),
+                 node("Stew", (0, 5.5, 0), box_shape((6, 1, 6), SIDES))]
+        cull.cull(nodes)
+        self.assertEqual(set(SIDES), sides_of(nodes)["Stew"])
+
     def test_two_boxes_pressed_together_still_hide_others_once_their_shared_faces_are_gone(self):
         nodes = [node("A", (0, 2, 0), box_shape((4, 4, 4), SIDES)), node("B", (4, 2, 0), box_shape((4, 4, 4), SIDES)),
                  node("C", (2, 6, 0), box_shape((4, 4, 4), SIDES))]

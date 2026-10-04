@@ -29,8 +29,8 @@ class Island:
     """A face's layers: substrate (an RGBA image), texels ({(i, j): bake.Texel}), the material's family, coats from
     the bottom up and own effect weights (effects.Material), the coats' tints ({(i, j): [(rgb, amount)]} per coat, in
     the order laid), depth ({(i, j): how deep it was dug}), relief ({(i, j): factor}, press), deposits ([(rgb,
-    {(i, j): amount})]), and what the effects left: their zones ({effect: texels}, for the critique) and signals
-    ({signal: texels}, for the effects after them)."""
+    {(i, j): amount})]), what the effects left: their zones ({effect: texels}, for the critique) and signals
+    ({signal: texels}, for the effects after them), and its base (the image before the effects, or None)."""
 
     def __init__(self, substrate, texels, material, side):
         self.substrate = substrate
@@ -44,6 +44,8 @@ class Island:
         self.weights = dict(material.weights)
         self.zones = {}
         self.signals = {}
+        # The composed image before any effect ran, when surface.layered records the island (illustration.py).
+        self.base = None
         w, h = substrate.size
         self.coat_images = [coat.colour(w, h, side) if callable(coat.colour) else None for coat in self.coats]
 

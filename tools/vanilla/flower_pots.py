@@ -19,8 +19,10 @@ from PIL import Image
 
 from brushes import average, stone, terracotta
 from catalog import module_surface, module_texture, surveyed
+from composer import Composer
 from conditions import MAINTAINED
 from icons import ICON_SIZE, draw_model
+from illustration import Illustration
 from models import bounds, check_uvs, empty_shape, node, scaled, shift_uvs, walk
 from pack import rounded, save_png, write_json
 from paths import PACK
@@ -208,8 +210,10 @@ def pot_material(name, side):
 
 
 # Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.module_texture): a pot kept with care, indoors or
-# out, standing on the floor; its tiles are each colour's (pot_cell).
-LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=MAINTAINED, SEED=11, material=pot_material)
+# out, standing on the floor; its tiles are each colour's (pot_cell). Illustrated and composed (specs 2026-10-04
+# blockpaint illustration, composer).
+LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=MAINTAINED, SEED=11, material=pot_material,
+                       ILLUSTRATION=Illustration(), COMPOSER=Composer())
 
 
 def pot_cell(template, surveyed_pot, clay_brush, dirt_brush):
@@ -233,22 +237,10 @@ def write_model(name, nodes):
 
 def pot_item(colour, clay_item, plants):
     """Minecraft flower pot: 3 clay (its bricks), 3/8 high, needs no support (Java places it even over the void),
-    breaks at once; one state per plant, which drops the pot and the plant."""
+    breaks at once; one state per plant (pot_states), which drops the pot and the plant."""
     pot = pot_id(colour)
     texture = [{"Texture": ATLAS, "Weight": 1}]
-    states = {}
-    for plant_id, block in plants.items():
-        state = {
-            "CustomModel": MODELS + colour + "/" + plant_id + ".blockymodel",
-            "CustomModelTexture": texture,
-            "Gathering": {"Soft": {"DropList": {"Container": {"Type": "Multiple", "Containers": [
-                {"Type": "Single", "Item": {"ItemId": pot}},
-                {"Type": "Single", "Item": {"ItemId": plant_id}},
-            ]}}}},
-        }
-        if "Light" in block:
-            state["Light"] = block["Light"]
-        states[plant_id] = state
+    states = pot_states(colour, plants, texture)
     return {
         "TranslationProperties": {"Name": "hyvanilla.item.flower_pot." + colour.lower() + ".name"},
         "Icon": "Icons/Items/HyVanilla/Flower_Pot_" + colour + ".png",
@@ -281,6 +273,25 @@ def pot_item(colour, clay_item, plants):
         "Tags": {"Type": ["Furniture"]},
         "ItemSoundSetId": "ISS_Blocks_Wood",
     }
+
+
+def pot_states(colour, plants, texture):
+    """{plant id: state} of a colour's pot: its model with the plant, its texture, dropping the pot and the plant, and
+    the plant's light when it glows."""
+    pot, states = pot_id(colour), {}
+    for plant_id, block in plants.items():
+        state = {
+            "CustomModel": MODELS + colour + "/" + plant_id + ".blockymodel",
+            "CustomModelTexture": texture,
+            "Gathering": {"Soft": {"DropList": {"Container": {"Type": "Multiple", "Containers": [
+                {"Type": "Single", "Item": {"ItemId": pot}},
+                {"Type": "Single", "Item": {"ItemId": plant_id}},
+            ]}}}},
+        }
+        if "Light" in block:
+            state["Light"] = block["Light"]
+        states[plant_id] = state
+    return states
 
 
 def hitbox():
