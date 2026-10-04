@@ -1,7 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.citizen.food.CitizenEating;
-import dev.hycolony.core.citizen.mourn.MournAI;
+import dev.hycolony.core.citizen.minimal.MinimalAIs;
 import dev.hycolony.core.citizen.sleep.CitizenSleep;
 import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
@@ -47,7 +47,7 @@ public final class CitizenAI {
     private final CommandedWalk commanded;
     private final CitizenSleep sleep;
     private final CitizenEating eating;
-    private final MournAI mourn;
+    private final MinimalAIs minimal;
     /**
      * Whether the last decision was EATING (MC {@code lastState == EATING}): it stays so after a meal ends, so a
      * citizen whose meal ended hungry goes back to eat at once, as in MC.
@@ -71,7 +71,6 @@ public final class CitizenAI {
         this.commanded = CommandedWalk.of(colony, data, body);
         this.sleep = new CitizenSleep(colony, data, body);
         this.eating = new CitizenEating(colony, data, body);
-        this.mourn = new MournAI(colony, data, body, wander);
         this.jobAI = new CurrentJobAI(colony, data, body, watch::jobStarted);
         this.stops = new WorkStops(colony, data);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
@@ -85,8 +84,7 @@ public final class CitizenAI {
         machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decide, DECIDE_INTERVAL_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.SLEEP, (IStateSupplier<CitizenState>) this::sleeping, 1));
         machine.addTransition(new AITarget<>(CitizenState.EATING, (IStateSupplier<CitizenState>) this::eat, 1));
-        machine.addTransition(
-                new AITarget<>(CitizenState.MOURN, (IStateSupplier<CitizenState>) mourn::tick, MournAI.RATE_TICKS));
+        this.minimal = new MinimalAIs(colony, data, body, wander, machine);
         sleep.onBodyAppeared();
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
@@ -130,6 +128,22 @@ public final class CitizenAI {
             machine.addTransition(commanded.transition(machine::getState));
         }
         commanded.start(target);
+    }
+
+    /**
+     * MC EntityCitizen.performMoveAway, after a hit but from a {@code fall}: it runs from {@code attacker} (where it
+     * stands) and flees ({@link MinimalAIs}) from the next tick, leaving its meal or work; hurt by no entity, it only
+     * steps away.
+     */
+    public void hit(@Nullable Vec3 attacker, boolean fall) {
+        if (!fall) {
+            minimal.hit(Optional.ofNullable(attacker), now -> {
+                leaveEating(now);
+                if (now == CitizenState.WORKING) {
+                    watch.leftWork(WorkExit.FLEE);
+                }
+            });
+        }
     }
 
     /**
@@ -194,6 +208,10 @@ public final class CitizenAI {
      */
     private @Nullable CitizenState decide() {
         CitizenState now = machine.getState();
+        if (now == CitizenState.FLEE) {
+            // Deviation from MC: a flight is not cut short; MC's decideAiTask keeps FLEE until its state would change.
+            return null;
+        }
         CitizenState next = switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
                 machine.setCurrentDelay(SleepDecision.SLEEP_DECIDE_DELAY_TICKS);
@@ -227,7 +245,7 @@ public final class CitizenAI {
                     watch.leftWork(WorkExit.MOURN);
                 }
                 wander.restartWait();
-                mourn.reset();
+                minimal.startMourning();
             }
             return CitizenState.MOURN;
         }

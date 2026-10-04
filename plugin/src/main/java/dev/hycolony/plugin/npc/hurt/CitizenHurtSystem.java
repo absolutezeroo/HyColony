@@ -16,11 +16,13 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.happiness.HappinessEvents;
 import dev.hycolony.core.citizen.inventory.ArmorWear;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -35,6 +37,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CitizenHurtSystem extends DamageEventSystem {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** Hytale's fall damage cause, MC's DamageTypes.FALL. */
+    private static final String FALL = "Fall";
 
     private final WorldRuntimes runtimes;
     private final Set<String> ignoredCauses;
@@ -72,13 +76,19 @@ public final class CitizenHurtSystem extends DamageEventSystem {
             if (tag == null || rt == null || !rt.enabled()) {
                 return;
             }
-            boolean attacker = HurtSources.of(event, buffer).attacker();
+            Optional<Vec3> attacker =
+                    HurtSources.of(event, buffer).attacker() ? HurtSources.position(event, buffer) : Optional.empty();
             BodyId body = rt.bodies().refs().track(ref);
-            rt.manager()
-                    .byId(tag.colonyId())
-                    .ifPresent(c -> c.citizens()
-                            .get(tag.citizenId())
-                            .ifPresent(d -> hurt(c, d, body, attacker, event.getCause())));
+            boolean fall =
+                    event.getCause() != null && FALL.equals(event.getCause().getId());
+            int citizenId = tag.citizenId();
+            rt.manager().byId(tag.colonyId()).ifPresent(c -> {
+                c.citizens().get(citizenId).ifPresent(d -> hurt(c, d, body, attacker.isPresent(), event.getCause()));
+                // A run moves the body, a write the processing store refuses: from the world's task queue.
+                store.getExternalData()
+                        .getWorld()
+                        .execute(() -> c.citizens().ai(citizenId).ifPresent(ai -> ai.hit(attacker.orElse(null), fall)));
+            });
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony citizen hurt failed");
         }

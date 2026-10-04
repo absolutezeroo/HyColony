@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntimes;
+import dev.hycolony.plugin.npc.hurt.CitizenAttitudeSystem;
 import dev.hycolony.plugin.npc.hurt.CitizenDeathSystem;
 import dev.hycolony.plugin.npc.hurt.CitizenHitFilter;
 import dev.hycolony.plugin.npc.hurt.CitizenHurtSystem;
@@ -12,6 +13,7 @@ import dev.hycolony.plugin.npc.hurt.CitizenWallFilter;
 import dev.hycolony.plugin.npc.motion.CitizenClimbSystem;
 import dev.hycolony.plugin.npc.motion.CitizenMantleSystem;
 import dev.hycolony.plugin.npc.motion.CitizenSwimSystem;
+import dev.hycolony.plugin.npc.spawn.HostileGroup;
 import dev.hycolony.plugin.npc.spawn.HostileSpawnSystems;
 
 /**
@@ -34,6 +36,7 @@ public final class NpcSystems {
         registry.registerSystem(new CitizenHitFilter(worlds));
         registry.registerSystem(new CitizenHurtSystem(worlds, ids.hurtIgnoredCauses()));
         registry.registerSystem(new CitizenDeathSystem(worlds));
+        registry.registerSystem(new CitizenAttitudeSystem(worlds, HostileGroup.of(ids)));
         registry.registerSystem(new CitizenMantleSystem());
         registry.registerSystem(new CitizenSwimSystem());
         registry.registerSystem(new CitizenClimbSystem());

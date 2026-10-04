@@ -92,6 +92,9 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     public boolean failNav;
     /** How a nav sent elsewhere by {@link #navEndsAt} ends. */
     public NavStatus navEndStatus = NavStatus.ARRIVED;
+    /** Where hostile creatures stand, for {@link #nearestThreat}. */
+    public final List<Vec3> threats = new ArrayList<>();
+
     /** Every teleport target, in call order. */
     public final List<Vec3> teleports = new ArrayList<>();
     /** Every moveTo target, in call order. */
@@ -152,6 +155,19 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     @Override
     public double maxHealth(BodyId body) {
         return isAlive(body) ? bodies.get(body).maxHealth : 0;
+    }
+
+    @Override
+    public Optional<Vec3> nearestThreat(BodyId body, double range) {
+        if (!isAlive(body)) {
+            return Optional.empty();
+        }
+        Vec3 at = bodies.get(body).position;
+        return threats.stream()
+                .filter(t -> Math.abs(t.x() - at.x()) <= range
+                        && Math.abs(t.y() - at.y()) <= 3
+                        && Math.abs(t.z() - at.z()) <= range)
+                .min(java.util.Comparator.comparingDouble(at::distance));
     }
 
     @Override

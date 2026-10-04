@@ -32,11 +32,13 @@ import dev.hycolony.plugin.npc.body.BodyDefense;
 import dev.hycolony.plugin.npc.body.BodyGestures;
 import dev.hycolony.plugin.npc.body.BodyRefs;
 import dev.hycolony.plugin.npc.body.BodySpeeds;
+import dev.hycolony.plugin.npc.body.BodyThreats;
 import dev.hycolony.plugin.npc.body.BodyVitals;
 import dev.hycolony.plugin.npc.body.CitizenSpeed;
 import dev.hycolony.plugin.npc.body.HytaleBodyHealth;
 import dev.hycolony.plugin.npc.body.HytaleBodySeats;
 import dev.hycolony.plugin.npc.motion.BodyWalks;
+import dev.hycolony.plugin.npc.spawn.HostileGroup;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -60,9 +62,11 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private boolean speedWarned;
 
     /**
-     * {@code stacks}: the core's stacks as Hytale's, for the armour a body wears.
+     * {@code stacks}: the core's stacks as Hytale's, for the armour a body wears; {@code hostile}: the creatures a body
+     * avoids.
      */
-    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed, HytaleStacks stacks) {
+    public HytaleCitizenBodies(
+            World world, String roleName, CitizenSpeed speed, HytaleStacks stacks, HostileGroup hostile) {
         this.world = world;
         this.roleName = roleName;
         this.stacks = stacks;
@@ -70,7 +74,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
         this.vitals = new BodyVitals(world);
-        this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds);
+        this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds, new BodyThreats(world, hostile));
         this.seats = new HytaleBodySeats(world, refs::entity);
         this.walks = new BodyWalks(world);
     }

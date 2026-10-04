@@ -29,6 +29,7 @@ import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.npc.GuardedBodies;
 import dev.hycolony.plugin.npc.body.CitizenSpeed;
+import dev.hycolony.plugin.npc.spawn.HostileGroup;
 import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
 import java.util.logging.Level;
@@ -71,7 +72,11 @@ public final class WorldRuntime {
         this.clock = new HytaleGameClock(world);
         HytaleItemCatalog catalog = new HytaleItemCatalog(ids.farming().hoeLevels());
         this.bodies = new HytaleCitizenBodies(
-                world, ids.npcs().role("npc.citizen"), new CitizenSpeed(ids.speedEffects()), catalog.stacks());
+                world,
+                ids.npcs().role("npc.citizen"),
+                new CitizenSpeed(ids.speedEffects()),
+                catalog.stacks(),
+                HostileGroup.of(ids));
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists

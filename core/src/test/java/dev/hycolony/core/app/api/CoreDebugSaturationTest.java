@@ -37,7 +37,11 @@ class CoreDebugSaturationTest {
         ColonyConfig.Gameplay g = d.gameplay();
         t.config = new ColonyConfig(
                 new ColonyConfig.Gameplay(
-                        g.initialCitizenAmount(), g.maxCitizenPerColony(), g.workersAlwaysWorkInRain(), foodModifier),
+                        g.initialCitizenAmount(),
+                        g.maxCitizenPerColony(),
+                        g.workersAlwaysWorkInRain(),
+                        foodModifier,
+                        g.mobAttackCitizens()),
                 d.claims(),
                 d.permissions(),
                 new ColonyConfig.Commands(true, true, false, managersMayModify, false),

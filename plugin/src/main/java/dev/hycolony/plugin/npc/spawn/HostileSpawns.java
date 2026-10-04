@@ -1,7 +1,5 @@
 package dev.hycolony.plugin.npc.spawn;
 
-import com.hypixel.hytale.builtin.tagset.TagSetPlugin;
-import com.hypixel.hytale.builtin.tagset.config.NPCGroup;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -28,13 +26,13 @@ final class HostileSpawns {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final WorldRuntimes runtimes;
-    private final String groupId;
+    private final HostileGroup group;
     /** The first failure is logged SEVERE, the next ones FINE (one per spawn otherwise). */
     private volatile boolean failed;
 
-    HostileSpawns(WorldRuntimes runtimes, String groupId) {
+    HostileSpawns(WorldRuntimes runtimes, HostileGroup group) {
         this.runtimes = runtimes;
-        this.groupId = groupId;
+        this.group = group;
     }
 
     /** The NPC component's type: null only before the NPC module is set up, which HyColony depends on. */
@@ -74,10 +72,6 @@ final class HostileSpawns {
 
     /** Whether role {@code role} is in the hostile group; throws (logged by {@link #check}) if it is not loaded. */
     private boolean hostile(int role) {
-        int group = NPCGroup.getAssetMap().getIndex(groupId);
-        if (group == Integer.MIN_VALUE) {
-            throw new IllegalStateException("NPC group " + groupId + " is not loaded");
-        }
-        return TagSetPlugin.get(NPCGroup.class).tagInSet(group, role);
+        return group.contains(role);
     }
 }

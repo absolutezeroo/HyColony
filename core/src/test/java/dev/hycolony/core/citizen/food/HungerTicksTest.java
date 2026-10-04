@@ -90,7 +90,7 @@ class HungerTicksTest {
         assertEquals(59.85, citizen.saturation(), EPS);
         ColonyConfig d = ColonyConfig.defaults();
         t.config = new ColonyConfig(
-                new ColonyConfig.Gameplay(4, 250, false, 2.0),
+                new ColonyConfig.Gameplay(4, 250, false, 2.0, true),
                 d.claims(),
                 d.permissions(),
                 d.commands(),

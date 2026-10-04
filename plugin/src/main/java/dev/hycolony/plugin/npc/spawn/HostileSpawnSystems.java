@@ -33,7 +33,7 @@ public final class HostileSpawnSystems {
 
     /** Registers the three checks and the colony-aware wilderness; the hostile group's id comes from the id map. */
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes runtimes, IdMap ids) {
-        HostileSpawns rule = new HostileSpawns(runtimes, ids.npcs().group("npc.group.hostile"));
+        HostileSpawns rule = new HostileSpawns(runtimes, HostileGroup.of(ids));
         registry.registerSystem(new NaturalNpcAdded(rule));
         registry.registerSystem(new BeaconSpawn(rule));
         registry.registerSystem(new MarkerSpawn(rule));
