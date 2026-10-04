@@ -1,14 +1,15 @@
 package dev.hycolony.core.citizen.vitals;
 
 import dev.hycolony.core.citizen.CitizenState;
+import dev.hycolony.core.citizen.hurt.HurtMemory;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen's vital signs, for diagnostics: what its AI did last, its {@link #walks()}, and its {@link #history()}
+ * A citizen's vital signs: for diagnostics, what its AI did last, its {@link #walks()}, and its {@link #history()}
  * while tracked, kept up to date in place (never allocated per tick) by the features themselves, not through the event
- * bus. Runtime only, never saved.
+ * bus; for its healing, its {@link #hurtMemory()}. Runtime only, never saved.
  */
 public final class CitizenVitals {
     private @Nullable CitizenState aiState;
@@ -19,6 +20,7 @@ public final class CitizenVitals {
     private int jobFailures;
     private long lastActionTick;
     private final WalkVitals walks = new WalkVitals();
+    private final HurtMemory hurtMemory = new HurtMemory();
     private @Nullable CitizenHistory history;
 
     /** The citizen AI's state; empty before its AI was made. */
@@ -59,6 +61,11 @@ public final class CitizenVitals {
     /** Its walks: the last one started and ended, and the stuck handler's last action. */
     public WalkVitals walks() {
         return walks;
+    }
+
+    /** Its last attacker, which stops its healing. */
+    public HurtMemory hurtMemory() {
+        return hurtMemory;
     }
 
     /**

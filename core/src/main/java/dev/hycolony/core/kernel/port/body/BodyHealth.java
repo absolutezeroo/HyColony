@@ -16,9 +16,6 @@ public interface BodyHealth {
     /** Heals the body by {@code amount}, up to its maximum (MC LivingEntity.heal). */
     void heal(BodyId body, double amount);
 
-    /** Whether something hurt the body less than 100 ticks ago (MC getLastHurtByMob() != null). */
-    boolean recentlyHurt(BodyId body);
-
     /** Slows the body down while it starves (MC MOVEMENT_SLOWDOWN 0: -15 % on top of its job's speed), or ends it. */
     void setStarving(BodyId body, boolean starving);
 }

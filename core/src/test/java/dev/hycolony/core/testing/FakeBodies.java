@@ -40,8 +40,6 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
         public double health = 100;
 
         public double maxHealth = 100;
-        /** What {@link FakeBodies#recentlyHurt} reports. */
-        public boolean recentlyHurt;
         /** Whether it is slowed down by starving. */
         public boolean starving;
         /** The seat it sits on; null standing. */
@@ -162,11 +160,6 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
             Body b = bodies.get(body);
             b.health = Math.min(b.maxHealth, b.health + amount);
         }
-    }
-
-    @Override
-    public boolean recentlyHurt(BodyId body) {
-        return isAlive(body) && bodies.get(body).recentlyHurt;
     }
 
     @Override

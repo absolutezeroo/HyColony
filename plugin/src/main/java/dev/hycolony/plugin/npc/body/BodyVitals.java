@@ -8,30 +8,19 @@ import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.function.LongSupplier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen body's health (its Health stat, sp4b-hytale-food § 5.b) and when it was last hurt. Our role has MaxHealth
- * 100, Hytale's scale (CitizenData.MAX_HEALTH). Hytale regenerates an NPC's health by itself (Health.json, +5 %
- * every 0.5 s after 15 s unhurt); that is switched off at each read (the healing reads every body every 100 ticks), as
- * MC citizens heal from their saturation only [in-game]. World thread only.
+ * A citizen body's health (its Health stat, sp4b-hytale-food § 5.b); the core remembers its attackers. Our role has
+ * MaxHealth 100, Hytale's scale (CitizenData.MAX_HEALTH). Hytale regenerates an NPC's health by itself (Health.json,
+ * +5 % every 0.5 s after 15 s unhurt); that is switched off at each read (the healing reads every body every 100
+ * ticks), as MC citizens heal from their saturation only [in-game]. World thread only.
  */
 public final class BodyVitals {
-    /** MC LivingEntity.getLastHurtByMob: an attacker is remembered for 100 ticks (the core's, 20 per second). */
-    private static final long HURT_MEMORY_TICKS = 100;
-
     private final World world;
-    private final LongSupplier coreTicks;
-    /** Core tick of each body's last hurt by an attacker; weak, so a removed entity drops out. */
-    private final Map<Ref<EntityStore>, Long> lastHurt = new WeakHashMap<>();
 
-    /** {@code coreTicks}: the core's clock, at 20 ticks per second where Hytale's world runs at 30. */
-    public BodyVitals(World world, LongSupplier coreTicks) {
+    public BodyVitals(World world) {
         this.world = world;
-        this.coreTicks = coreTicks;
     }
 
     private Store<EntityStore> store() {
@@ -62,17 +51,6 @@ public final class BodyVitals {
         if (stats != null) {
             stats.addStatValue(DefaultEntityStatTypes.getHealth(), (float) amount);
         }
-    }
-
-    /** Notes that an attacker hurt the body now (from the damage system). */
-    public void hurt(Ref<EntityStore> ref) {
-        lastHurt.put(ref, coreTicks.getAsLong());
-    }
-
-    /** Whether the body took damage less than {@link #HURT_MEMORY_TICKS} ago. */
-    public boolean recentlyHurt(Ref<EntityStore> ref) {
-        Long tick = lastHurt.get(ref);
-        return tick != null && coreTicks.getAsLong() - tick < HURT_MEMORY_TICKS;
     }
 
     private @Nullable EntityStatValue health(Ref<EntityStore> ref) {

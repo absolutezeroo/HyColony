@@ -34,11 +34,6 @@ public final class HytaleBodyHealth implements BodyHealth {
         this.speeds = speeds;
     }
 
-    /** The citizen body {@code ref} took damage now (the damage system, neither fire nor lightning). */
-    public void hurt(Ref<EntityStore> ref) {
-        vitals.hurt(ref);
-    }
-
     @Override
     public double health(BodyId body) {
         return read("health", body, vitals::current, 0.0);
@@ -59,11 +54,6 @@ public final class HytaleBodyHealth implements BodyHealth {
                     return true;
                 },
                 false);
-    }
-
-    @Override
-    public boolean recentlyHurt(BodyId body) {
-        return read("recentlyHurt", body, vitals::recentlyHurt, false);
     }
 
     /** Through {@link BodySpeeds}, on top of its job's speed. */

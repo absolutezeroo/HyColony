@@ -39,7 +39,6 @@ import dev.hycolony.plugin.npc.body.HytaleBodySeats;
 import dev.hycolony.plugin.npc.motion.BodyWalks;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import org.joml.Vector3d;
 
@@ -61,18 +60,16 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private boolean speedWarned;
 
     /**
-     * {@code coreTicks}: the core's clock, for how long a hurt body is remembered; {@code stacks}: the core's stacks as
-     * Hytale's, for the armour a body wears.
+     * {@code stacks}: the core's stacks as Hytale's, for the armour a body wears.
      */
-    public HytaleCitizenBodies(
-            World world, String roleName, CitizenSpeed speed, LongSupplier coreTicks, HytaleStacks stacks) {
+    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed, HytaleStacks stacks) {
         this.world = world;
         this.roleName = roleName;
         this.stacks = stacks;
         this.speeds = new BodySpeeds(speed);
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
-        this.vitals = new BodyVitals(world, coreTicks);
+        this.vitals = new BodyVitals(world);
         this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds);
         this.seats = new HytaleBodySeats(world, refs::entity);
         this.walks = new BodyWalks(world);

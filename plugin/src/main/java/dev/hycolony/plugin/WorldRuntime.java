@@ -71,11 +71,7 @@ public final class WorldRuntime {
         this.clock = new HytaleGameClock(world);
         HytaleItemCatalog catalog = new HytaleItemCatalog(ids.farming().hoeLevels());
         this.bodies = new HytaleCitizenBodies(
-                world,
-                ids.npcs().role("npc.citizen"),
-                new CitizenSpeed(ids.speedEffects()),
-                clock::currentTick,
-                catalog.stacks());
+                world, ids.npcs().role("npc.citizen"), new CitizenSpeed(ids.speedEffects()), catalog.stacks());
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists

@@ -59,6 +59,7 @@ public final class HungerTicks {
     public static void updateHealing(Colony colony) {
         CitizenBodies bodies = colony.context().bodies();
         BodyHealth health = colony.context().health();
+        long tick = colony.context().clock().currentTick();
         for (CitizenData data : colony.citizens().all()) {
             BodyId body = colony.citizens().bodyOf(data.id()).orElse(null);
             if (body == null || !bodies.isAlive(body)) {
@@ -66,7 +67,7 @@ public final class HungerTicks {
             }
             double saturation = data.saturation();
             double max = health.maxHealth(body);
-            if (health.health(body) < max && !health.recentlyHurt(body)) {
+            if (health.health(body) < max && !data.vitals().hurtMemory().recentlyAttacked(tick)) {
                 health.heal(body, healAmount(saturation) * max / CitizenData.MC_MAX_HEALTH);
             }
             health.setStarving(body, saturation <= 0);

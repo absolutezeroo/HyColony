@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.hurt.HurtMemory;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -129,9 +130,13 @@ class HungerTicksTest {
     @Test
     void aCitizenHurtLatelyDoesNotHeal() {
         fake().health = 10;
-        fake().recentlyHurt = true;
+        citizen.vitals().hurtMemory().attacked(t.clock.tick);
         HungerTicks.updateHealing(colony);
         assertEquals(10, fake().health, EPS);
+
+        t.clock.tick += HurtMemory.HURT_MEMORY_TICKS;
+        HungerTicks.updateHealing(colony);
+        assertEquals(20, fake().health, EPS, "the attacker forgotten, it heals again");
     }
 
     @Test
