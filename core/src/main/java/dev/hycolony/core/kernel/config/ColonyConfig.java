@@ -11,7 +11,8 @@ public record ColonyConfig(
         Commands commands,
         Client client,
         HyColony hycolony,
-        Structurize structurize) {
+        Structurize structurize,
+        Combat combat) {
 
     /**
      * MC ServerConfiguration, section gameplay.
@@ -21,14 +22,9 @@ public record ColonyConfig(
      * @param workersAlwaysWorkInRain MC workersalwaysworkinrain: rain never stops a worker
      *     (CitizenAI.shouldWorkWhileRaining)
      * @param foodModifier MC foodmodifier: multiplies every saturation a citizen loses (CitizenHunger.decrease)
-     * @param mobAttackCitizens MC mobattackcitizens: hostile creatures attack citizens (the plugin's attitude)
      */
     public record Gameplay(
-            int initialCitizenAmount,
-            int maxCitizenPerColony,
-            boolean workersAlwaysWorkInRain,
-            double foodModifier,
-            boolean mobAttackCitizens) {
+            int initialCitizenAmount, int maxCitizenPerColony, boolean workersAlwaysWorkInRain, double foodModifier) {
         public Gameplay {
             initialCitizenAmount = Math.clamp(initialCitizenAmount, 1, 10);
             maxCitizenPerColony = Math.clamp(maxCitizenPerColony, 25, 500);
@@ -126,15 +122,23 @@ public record ColonyConfig(
         }
     }
 
+    /**
+     * MC ServerConfiguration, section combat; raids, guards and PvP are not ported.
+     *
+     * @param mobAttackCitizens MC mobattackcitizens: hostile creatures attack citizens (the plugin's attitude)
+     */
+    public record Combat(boolean mobAttackCitizens) {}
+
     /** MineColonies' defaults, and ours for the HyColony section. */
     public static ColonyConfig defaults() {
         return new ColonyConfig(
-                new Gameplay(4, 250, false, 1.0, true),
+                new Gameplay(4, 250, false, 1.0),
                 new Claims(20, 8, 4, 30000, 0),
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
                 new Commands(true, true, false, false, false),
                 new Client(50, true),
                 new HyColony(5, false, true),
-                new Structurize(1000));
+                new Structurize(1000),
+                new Combat(true));
     }
 }

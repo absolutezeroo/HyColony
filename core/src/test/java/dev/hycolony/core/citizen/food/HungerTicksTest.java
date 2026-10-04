@@ -90,13 +90,14 @@ class HungerTicksTest {
         assertEquals(59.85, citizen.saturation(), EPS);
         ColonyConfig d = ColonyConfig.defaults();
         t.config = new ColonyConfig(
-                new ColonyConfig.Gameplay(4, 250, false, 2.0, true),
+                new ColonyConfig.Gameplay(4, 250, false, 2.0),
                 d.claims(),
                 d.permissions(),
                 d.commands(),
                 d.client(),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
         colony = colony();
         HungerTicks.decreaseIdleSaturation(colony);
         assertEquals(59.85 - 0.3, citizen.saturation(), EPS);

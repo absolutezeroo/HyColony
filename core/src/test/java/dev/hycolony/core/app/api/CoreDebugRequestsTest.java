@@ -44,7 +44,8 @@ class CoreDebugRequestsTest {
                     new ColonyConfig.Commands(true, true, false, false, playersMayReset),
                     d.client(),
                     d.hycolony(),
-                    d.structurize());
+                    d.structurize(),
+                    d.combat());
             ColonyManager manager = t.manager();
             UUID owner = UUID.randomUUID();
             manager.foundation().begin(owner, "Owner", HALL, 0);

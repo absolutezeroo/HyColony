@@ -37,17 +37,14 @@ class CoreDebugSaturationTest {
         ColonyConfig.Gameplay g = d.gameplay();
         t.config = new ColonyConfig(
                 new ColonyConfig.Gameplay(
-                        g.initialCitizenAmount(),
-                        g.maxCitizenPerColony(),
-                        g.workersAlwaysWorkInRain(),
-                        foodModifier,
-                        g.mobAttackCitizens()),
+                        g.initialCitizenAmount(), g.maxCitizenPerColony(), g.workersAlwaysWorkInRain(), foodModifier),
                 d.claims(),
                 d.permissions(),
                 new ColonyConfig.Commands(true, true, false, managersMayModify, false),
                 d.client(),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
         ColonyManager manager = t.manager();
         UUID owner = UUID.randomUUID();
         manager.foundation().begin(owner, "Owner", HALL, 0);

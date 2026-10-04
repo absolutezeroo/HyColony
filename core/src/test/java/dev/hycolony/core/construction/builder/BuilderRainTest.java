@@ -101,14 +101,14 @@ class BuilderRainTest {
                         d.gameplay().initialCitizenAmount(),
                         d.gameplay().maxCitizenPerColony(),
                         workersAlwaysWorkInRain,
-                        d.gameplay().foodModifier(),
-                        d.gameplay().mobAttackCitizens()),
+                        d.gameplay().foodModifier()),
                 d.claims(),
                 d.permissions(),
                 d.commands(),
                 d.client(),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
     }
 
     private Building place(ColonyManager manager, String type, BlockPos pos, int level) {

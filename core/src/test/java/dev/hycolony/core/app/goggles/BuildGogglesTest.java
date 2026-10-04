@@ -149,7 +149,8 @@ class BuildGogglesTest {
                 d.commands(),
                 new ColonyConfig.Client(10, true),
                 d.hycolony(),
-                d.structurize()));
+                d.structurize(),
+                d.combat()));
         claimedBuild();
         t.players.online.put(alice, HOUSE.offset(11, 0, 0));
 

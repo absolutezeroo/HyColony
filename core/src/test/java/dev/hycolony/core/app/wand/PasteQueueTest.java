@@ -50,7 +50,8 @@ class PasteQueueTest {
                 d.commands(),
                 d.client(),
                 d.hycolony(),
-                new ColonyConfig.Structurize(5));
+                new ColonyConfig.Structurize(5),
+                d.combat());
         return t;
     }
 

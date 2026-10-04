@@ -139,7 +139,8 @@ class ColonyManagerTest {
                 d.commands(),
                 d.client(),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
         return t.manager();
     }
 

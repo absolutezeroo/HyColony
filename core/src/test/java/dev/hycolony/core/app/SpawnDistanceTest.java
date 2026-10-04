@@ -30,7 +30,8 @@ class SpawnDistanceTest {
                 d.commands(),
                 d.client(),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
         t.world.spawn = new BlockPos(0, 100, 0);
         return t.manager();
     }

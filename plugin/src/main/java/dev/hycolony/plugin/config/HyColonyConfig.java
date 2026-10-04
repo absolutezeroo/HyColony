@@ -53,6 +53,11 @@ public final class HyColonyConfig {
                     new KeyedCodec<>("Structurize", StructurizeSection.CODEC),
                     (c, v) -> c.structurize = orNew(v, StructurizeSection::new),
                     c -> c.structurize)
+            .add()
+            .append(
+                    new KeyedCodec<>("Combat", CombatSection.CODEC),
+                    (c, v) -> c.combat = orNew(v, CombatSection::new),
+                    c -> c.combat)
             .add();
 
     public static final BuilderCodec<HyColonyConfig> CODEC = legacy(SECTIONS).build();
@@ -64,6 +69,7 @@ public final class HyColonyConfig {
     private ClientSection client = new ClientSection();
     private HyColonySection hycolony = new HyColonySection();
     private StructurizeSection structurize = new StructurizeSection();
+    private CombatSection combat = new CombatSection();
 
     /** The core configuration; the core clamps every value to MineColonies' bounds. */
     public ColonyConfig toCore() {
@@ -74,7 +80,8 @@ public final class HyColonyConfig {
                 commands.toCore(),
                 client.toCore(),
                 hycolony.toCore(),
-                structurize.toCore());
+                structurize.toCore(),
+                combat.toCore());
     }
 
     /** Which sub-plugins are switched on or off ({@code HyColony.SubPlugins}); a pack not named keeps its default. */

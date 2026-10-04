@@ -75,7 +75,7 @@ public final class CitizenAttitudeSystem extends StoreSystem<EntityStore> {
             WorldRuntime rt = runtimes.of(world);
             boolean attack = rt != null
                     && rt.enabled()
-                    && rt.manager().context().config().gameplay().mobAttackCitizens()
+                    && rt.manager().context().config().combat().mobAttackCitizens()
                     && hostile.contains(role);
             return attack ? Attitude.HOSTILE : null;
         } catch (RuntimeException e) {

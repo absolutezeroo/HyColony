@@ -181,7 +181,8 @@ class ColonyBorderTest {
                 d.commands(),
                 new ColonyConfig.Client(50, false),
                 d.hycolony(),
-                d.structurize());
+                d.structurize(),
+                d.combat());
         ColonyManager manager = t.manager();
         manager.territory().claimSquare(OTHER, new ClaimCell(5, 5), 0);
 
