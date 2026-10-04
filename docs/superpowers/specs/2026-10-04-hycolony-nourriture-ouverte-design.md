@@ -10,7 +10,7 @@ HyColony ne doit connaître aucun banc ni aucun plat par son nom quand une règl
 - faire apprendre ses produits aux métiers de HyColony, comme les tags de métier de MC (`cook_product`…) ;
 - cuire ses aliments sur ses propres bancs de cuisson.
 
-Critères de réussite : un plat d'un mod tiers, sans aucun fichier HyColony, nourrit un citoyen ; avec un fichier HyColony, il prend la valeur et le palier voulus ; un banc `Processing` d'un mod qui cuit un aliment sert de poste de cuisson à la salle à manger ; nos 54 aliments et nos règles de fabrication restent inchangés en jeu.
+Critères de réussite : un plat d'un mod tiers, sans aucun fichier HyColony, nourrit un citoyen ; avec un fichier HyColony, il prend la valeur et le palier voulus ; un banc `Processing` d'un mod qui cuit un aliment sert de poste de cuisson à la salle à manger ; nos 50 aliments et nos règles de fabrication restent inchangés en jeu.
 
 ## 2. Décisions de l'utilisateur
 
@@ -27,7 +27,7 @@ Critères de réussite : un plat d'un mod tiers, sans aucun fichier HyColony, no
 ## 4. Hytale (pre.5, vérifié)
 
 - **Type d'asset d'un plugin** : `PluginBase.getAssetRegistry()` (`HY/server/core/plugin/PluginBase.java:211`) enregistre un `AssetStore` et le retire à l'arrêt (`HY/server/core/plugin/registry/AssetRegistry.java:18`) ; le magasin se construit par `HytaleAssetStore.builder` (`HY/server/core/asset/HytaleAssetStore.java:175`). Ses fichiers sont lus dans **chaque pack**, sous `<pack>/Server/<chemin>` (`HY/assetstore/AssetStore.java:755`) ; un pack chargé après un autre remplace un fichier de même nom. Exemple public : `FoodValue` de HytaleHungerMod (AGPL, idée seulement).
-- **Aliments** : Hytale n'a ni faim ni valeur nutritive (`docs/research/sp4b-hytale-food.md` § 2). Il marque ses aliments par la catégorie `Items.Foods` (héritée de `Template_Food`, `zip:Server/Item/Items/Food/Template_Food.json`) et `Consumable: true`. Dans les assets pre.5 : 53 objets `Items.Foods` : nos 44 aliments de la table qui ne sont pas des champignons, 4 poissons crus absents de notre table (`Food_Fish_Raw_Uncommon/_Rare/_Epic/_Legendary`, qualité Common, consommables) et 5 ingrédients non consommables (`Ingredient_Dough`, `_Fishbone`, `_Flour`, `_Salt`, `_Spices`). Les 6 `Plant_Crop_Mushroom_Glowing_*`, toxiques, sont consommables sans être `Items.Foods`.
+- **Aliments** : Hytale n'a ni faim ni valeur nutritive (`docs/research/sp4b-hytale-food.md` § 2). Il marque ses aliments par la catégorie `Items.Foods` (héritée de `Template_Food`, `zip:Server/Item/Items/Food/Template_Food.json`) et `Consumable: true`. Dans les assets pre.5 : 53 objets `Items.Foods` : nos 44 aliments de la table qui ne sont pas des champignons, 4 variantes et 5 ingrédients non consommables (`Ingredient_Dough`, `_Fishbone`, `_Flour`, `_Salt`, `_Spices`). Les 4 variantes (`Food_Fish_Raw_Uncommon/_Rare/_Epic/_Legendary`, `Variant: true`, `Item.isVariant`, `HY/server/core/asset/type/item/config/Item.java:1009`) ne sont pas de vrais aliments : elles portent une recette du plan de cuisine dont le résultat est `Food_Fish_Raw` (`zip:Server/Item/Items/Food/Fish/Food_Fish_Raw_Uncommon.json`, `PrimaryOutput`), et Hytale les cache de la liste des objets. Les 6 `Plant_Crop_Mushroom_Glowing_*`, toxiques, sont consommables sans être `Items.Foods`.
 - **Qualité** : chaque objet a une `Quality` (`Common`, `Uncommon`, `Rare`, `Epic`, `Legendary`…, `zip:Server/Item/Qualities/`). Nos aliments : Common pour le cru et le feu de camp, Uncommon pour le pain, le fromage, le pop-corn, les brochettes et les salades, Rare pour les tartes et la salade César.
 - **Bancs de cuisson** : un banc `Processing` déclare ses recettes et son emplacement de combustible par type de ressource (`Bench_Campfire.json:65-69`, `"Fuel": [{"ResourceTypeId": "Fuel"}]`). Le four (`Bench_Furnace`) est `Processing` mais ne cuit aucun aliment.
 
@@ -47,26 +47,26 @@ Critères de réussite : un plat d'un mod tiers, sans aucun fichier HyColony, no
 
 ### 5.2 Nos fichiers
 
-Les 50 entrées de `id-map.json` (`food.foods`) deviennent 50 fichiers, valeurs inchangées (spec SP4b § 2.2). On ajoute les 4 poissons crus rares, absents de la table, avec la valeur du poisson cru (`Nutrition` 2, `Tier` 0) : `Deviation from MC (Hytale world)`, comme les autres valeurs de la table. La section `food.foods` et le champ `food.cookingBench` (partie 3) quittent l'id-map ; `food.defaultFuels` et `food.eatParticle` y restent.
+Les 50 entrées de `id-map.json` (`food.foods`) deviennent 50 fichiers, valeurs inchangées (spec SP4b § 2.2). La section `food.foods` et le champ `food.cookingBench` (partie 3) quittent l'id-map ; `food.defaultFuels` et `food.eatParticle` y restent ; `food.foodCategory` et `food.qualityRanks` (§ 5.3) y entrent.
 
 ### 5.3 Valeur par défaut (règle du cœur)
 
-Un objet sans fichier est un aliment s'il est `Consumable` et de catégorie `Items.Foods`. Sa valeur se déduit de sa qualité Hytale, par une règle **du cœur** (une décision de jeu ne vit pas dans un plugin), `kernel/item/FoodDefaults` :
+Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une variante (`isVariant`) et est de la catégorie d'aliments de l'id-map (`food.foodCategory` : `Items.Foods`). Sa valeur se déduit de sa qualité Hytale, par une règle **du cœur** (une décision de jeu ne vit pas dans un plugin), l'énumération `kernel/item/FoodQuality` :
 
-| Qualité | Nutrition | Palier | D'où vient le chiffre |
-|---|---|---|---|
-| Common (et toute qualité inconnue) | 3 | 0 | médiane des 30 aliments Common de notre table |
-| Uncommon | 8 | 2 | médiane des 9 aliments Uncommon (nutrition 6 à 9, paliers 1 et 2) |
-| Rare, Epic, Legendary et au-delà | 12 | 3 | médiane des 4 aliments Rare |
+| Rang du cœur | Qualités Hytale (id-map `food.qualityRanks`) | Nutrition | Palier | D'où vient le chiffre |
+|---|---|---|---|---|
+| `COMMON` | Common, et toute qualité absente de l'id-map | 3 | 0 | médiane des 30 aliments Common de notre table |
+| `UNCOMMON` | Uncommon | 8 | 2 | médiane des 9 aliments Uncommon (nutrition 6 à 9, paliers 1 et 2) |
+| `RARE` | Rare, Epic, Legendary | 12 | 3 | médiane des 4 aliments Rare |
 
 - `Poisonous` : faux (Hytale ne marque pas un aliment toxique ; ses champignons toxiques ont un fichier).
 - Écart : `Deviation from MC (Hytale world): MC reads an item's FoodProperties → a Hytale food without a HyColony file takes the median value of our table's foods of its Quality.`
-- Le cœur reçoit la qualité en texte (`FoodDefaults.forQuality(String)`) : il ne connaît pas les qualités Hytale, la table vit dans la règle.
+- Les noms de qualité et la catégorie sont des ids d'assets Hytale : ils vivent dans l'id-map (§ 7), le cœur ne connaît que les trois rangs et leurs valeurs.
 
 ### 5.4 Le port et l'adaptateur
 
 - Le port `FoodCatalog` ne change pas : le cœur ne voit aucune différence.
-- `HytaleFoods` lit le magasin d'assets au premier usage (les assets sont chargés), puis, pour un objet absent, `FoodDefaults` si l'objet est un aliment Hytale. Le cache existant reste ; un rechargement d'assets demande toujours un redémarrage (comportement actuel).
+- `HytaleFoods` lit le magasin d'assets au premier usage (les assets sont chargés), puis, pour un objet absent, la valeur de `FoodQuality` de son rang (qualité lue par `food.qualityRanks`) si l'objet est un aliment Hytale. Le cache existant reste ; un rechargement d'assets demande toujours un redémarrage (comportement actuel).
 - `plugin/food/FoodValueAsset` : la classe d'asset (`JsonAssetWithMap<String, DefaultAssetMap<String, FoodValueAsset>>`, codec `Nutrition`, `Tier`, `Poisonous`, clé = nom du fichier), enregistrée dans `setup()` par `getAssetRegistry()`.
 - `IdMap.check` ne vérifie plus la table des aliments ; `FoodSelfTest` (nouveau, `/hycolony selftest`) affiche : le nombre d'aliments à fichier, le nombre d'aliments par défaut, et chaque fichier dont l'objet est inconnu.
 
@@ -102,7 +102,7 @@ Un objet sans fichier est un aliment s'il est `Consumable` et de catégorie `Ite
 
 - `crafting/recipe/JobTags` (record) : `Map<String, Set<ItemKey>>`, tag → objets, déjà fusionnés et développés par l'adaptateur ; `product(jobId)`, `excluded(jobId)`, `reduceable()`, `excludedFromReduction()`.
 - `CraftingRules` reçoit `JobTags` au lieu de lire ces listes dans le JSON ; `allows` garde l'ordre de MC : exclu → refusé, inclus → accepté, sinon `allow`. `isReduceable` et `isExcludedFromReduction` lisent les tags.
-- L'adaptateur `plugin/crafting/HytaleJobTags` lit le magasin `JobTags`, fusionne par `Tag`, développe les `res:` par le catalogue d'objets, et passe le record au cœur avec `crafting.json` (`SubPlugins.craftingRules`).
+- L'adaptateur `plugin/crafting/HytaleJobTags` lit le magasin `JobTags`, développe les `res:` par le catalogue d'objets et passe les fichiers au cœur (`JobTags.merge`, qui fusionne par `Tag`). `crafting.json` est lu au `setup()`, avant le chargement des assets ; les tags sont donc ajoutés à la création des ports d'un monde, assets chargés (`CraftingRules.withTags`, dans `WorldPorts`).
 
 ## 7. Partie 3 : les postes de cuisson
 
@@ -119,21 +119,20 @@ Le § 7 dit : « Les identifiants d'assets Hytale ne vivent que dans l'id-map de
 
 > Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, …), sauf dans les types d'assets que HyColony ouvre aux autres mods (`Server/HyColony/Foods/`, `Server/HyColony/JobTags/`), où un fichier nomme l'objet qu'il décrit. Les plans de bâtiments sont dans `hycolony/styles.json`.
 
-`AGENTS.md` et l'agent `ui-lang-checker` (qui vérifie la règle des id-maps) reçoivent la même exception. Cette étape vient en premier dans le plan : sans elle, la relecture refuserait les fichiers d'aliments.
+L'agent `ui-lang-checker` (qui vérifie la règle des id-maps) et la skill `hytale-api` (qui la rappelle) reçoivent la même exception ; `AGENTS.md` ne la cite pas. Cette étape vient en premier dans le plan : sans elle, la relecture refuserait les fichiers d'aliments.
 
 ## 9. Écarts
 
 | Écart | Marquage |
 |---|---|
-| Valeur d'un aliment sans fichier, par sa qualité Hytale (§ 5.3) | `Deviation from MC (Hytale world)` dans `FoodDefaults` |
-| 4 poissons crus rares ajoutés à la table (§ 5.2) | rattaché à l'écart existant de la table (`HytaleFoods`) |
+| Valeur d'un aliment sans fichier, par sa qualité Hytale (§ 5.3) | `Deviation from MC (Hytale world)` dans `FoodQuality` |
 | Tags de MC lus dans des assets Hytale au lieu des tags d'objets de Minecraft | `Deviation from MC (Hytale world)` dans `HytaleJobTags` et `JobTags` |
 
 ## 10. Architecture
 
-- **Cœur** : `kernel/item/FoodDefaults` (nouveau) ; `crafting/recipe/JobTags` (nouveau) ; `CraftingRules`, `CraftingRulesJson` (listes retirées, clés anciennes ignorées). Aucun changement de sauvegarde : aucune migration.
+- **Cœur** : `kernel/item/FoodQuality` (nouveau) ; `crafting/recipe/JobTags` (nouveau) ; `CraftingRules`, `CraftingRulesJson` (listes retirées, clés anciennes ignorées). Aucun changement de sauvegarde : aucune migration.
 - **Plugin** : `food/FoodValueAsset`, `food/HytaleFoods`, `food/HytaleCookingCatalog`, `food/FoodIds` (ne garde que combustibles et particule), `crafting/JobTagAsset`, `crafting/HytaleJobTags` (nouveaux ou modifiés) ; `IdMap` ; `subplugin/SubPlugins` ; `command/FoodSelfTest` (nouveau) ; enregistrement des deux magasins dans `setup()`.
-- **Ressources** : `Server/HyColony/Foods/*.json` (54 fichiers) ; `hycolony/id-map.json` ; `hycolony/crafting.json`.
+- **Ressources** : `Server/HyColony/Foods/*.json` (50 fichiers) ; `hycolony/id-map.json` ; `hycolony/crafting.json`.
 - **Outils** : `tools/food/generate.py` ; `checkFoodTooltips`.
 - **Packs internes** (`hycolony/packs.json`, aucun aujourd'hui) : un pack ajoute ses aliments et ses tags comme fichiers d'assets de son dossier ; un pack désactivé n'enregistre pas ses assets, donc ses aliments ne comptent pas.
 - Chaque paquet reste sous 15 fichiers (`plugin/food` en a 3 aujourd'hui ; `plugin/crafting` est à vérifier au plan).
@@ -141,19 +140,19 @@ Le § 7 dit : « Les identifiants d'assets Hytale ne vivent que dans l'id-map de
 ## 11. Tests
 
 - **Cœur (TDD)** :
-  - `FoodDefaults` : chaque qualité, une qualité inconnue, la casse du texte ;
+  - `FoodQuality` : la valeur de chaque rang ;
   - `JobTags` et `CraftingRules` : un produit exclu par un tag est refusé même si un autre tag l'inclut ; un produit inclus est accepté sans banc autorisé ; sans tag, `allow` décide ; deux tags du même nom fusionnés ; `reduceable` lu dans les tags ;
   - `CraftingRulesJson` : une ancienne clé `includeItems` est ignorée avec un avertissement ;
   - les tests existants de `CraftingRules` passent par `JobTags` au lieu des listes JSON.
 - **Plugin** (`/hycolony selftest` et `docs/TESTING.md`, à partir du point 382) :
-  - la ligne aliments du selftest : 54 aliments à fichier, 0 inconnu ;
-  - un repas : un citoyen mange un aliment à fichier puis un poisson cru rare ; l'infobulle d'un aliment est inchangée ;
-  - un aliment sans fichier (un `Items.Foods` consommable retiré de nos fichiers dans un pack de test) nourrit un citoyen à la valeur de sa qualité ;
+  - la ligne aliments du selftest : 50 aliments à fichier, 0 inconnu ;
+  - un repas : un citoyen mange un aliment à fichier, à la même valeur qu'avant ; l'infobulle d'un aliment est inchangée ; la liste « Plats possibles » de la salle à manger ne montre aucune variante (`Food_Fish_Raw_Rare`…) ;
+  - un aliment sans fichier (`Food_Bread.json` retiré un instant : en dev, les assets sont lus dans `src/main/resources`, `docs/research/plugin-b-api.md`) nourrit un citoyen à la valeur de sa qualité ;
   - la salle à manger cuit toujours au feu de camp ; le four n'est pas pris pour un poste de cuisson.
 
 ## 12. À vérifier pendant le plan (sources décompilées)
 
-- Le moment de l'enregistrement : `getAssetRegistry().register` dans `setup()` charge-t-il les fichiers de tous les packs, ou faut-il enregistrer plus tôt (HytaleHungerMod le fait dans un bloc `static` de sa classe de plugin) ?
+- Le moment de l'enregistrement : **vérifié**, les plugins de Hytale enregistrent leurs types d'assets dans `setup()` par `getAssetRegistry().register(...)`, avec `.loadsAfter(Item.class)` (`HY/builtin/adventure/shop/ShopPlugin.java:29-41`) ; reste à voir en jeu que nos 50 fichiers sont lus (selftest).
 - Que l'enregistrement et la lecture ne se fassent jamais sur le thread du monde avec le verrou d'assets (`docs/research/plugin-b-api.md`, piège `loadAssets`).
 - L'ordre des packs quand deux packs fournissent le même nom de fichier.
 - La lecture de la catégorie `Items.Foods`, de `Consumable` et de `Quality` d'un `Item` (héritage par `Parent`).
