@@ -1,0 +1,27 @@
+{
+    "Group": "HyColony",
+    "Name": "hyangler",
+    "Version": "0.1.0",
+    "Description": "Fishing for Hytale: rods, bobbers, fish by environment and hour, and an api for other mods.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "ServerVersion": ">=0.7.0-pre.5 <0.8.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*",
+        "Hytale:Beam": "*",
+        "Hytale:Weather": "*"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.hyangler.plugin.HyAnglerPlugin",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}
