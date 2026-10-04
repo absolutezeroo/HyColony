@@ -9,30 +9,24 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The {@code food} section of the id-map (sp4b-hytale-food § 8, spec 2026-10-04 § 5): the bench that cooks raw food
- * (MC's furnace), the particle of a citizen eating, the fuels a dining hall allows at first, and how a Hytale food
- * without a HyColony food file is told (its item category) and valued (its quality's rank). The foods themselves are
- * the {@code Server/HyColony/Foods} files ({@link FoodValueAsset}). Absent from an older id-map: no food by default.
+ * The {@code food} section of the id-map (sp4b-hytale-food § 8, spec 2026-10-04 § 5): the particle of a citizen
+ * eating, the fuels a dining hall allows at first, and how a Hytale food without a HyColony food file is told (its item
+ * category) and valued (its quality's rank). The foods themselves are the {@code Server/HyColony/Foods} files
+ * ({@link FoodValueAsset}); the cooking stations are every bench that cooks one ({@link CookingBenches}). Absent from
+ * an older id-map: no food by default.
  *
- * @param cookingBench the processing bench whose recipes cook food (Hytale's campfire)
  * @param eatParticle the particle system of crumbs at a citizen's mouth
  * @param defaultFuels the fuel item ids a new dining hall allows (MC's coal and charcoal)
  * @param foodCategory the item category of Hytale's foods
  * @param qualityRanks Hytale item quality id -> {@link FoodQuality} constant name
  */
 public record FoodIds(
-        @Nullable String cookingBench,
         @Nullable String eatParticle,
         @Nullable List<String> defaultFuels,
         @Nullable String foodCategory,
         @Nullable Map<String, String> qualityRanks) {
     /** An id-map without food. */
-    public static final FoodIds NONE = new FoodIds(null, null, null, null, null);
-
-    /** The cooking bench id; empty when the id-map has none (nothing cooks). */
-    public Optional<String> bench() {
-        return Optional.ofNullable(cookingBench);
-    }
+    public static final FoodIds NONE = new FoodIds(null, null, null, null);
 
     public Optional<String> particle() {
         return Optional.ofNullable(eatParticle);

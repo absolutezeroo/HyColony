@@ -80,17 +80,14 @@ val checkFoodTooltips by tasks.registering {
     val langFiles = listOf("en-US", "fr-FR").map { resources.resolve("Server/Languages/$it/hycolony_food.lang") }
     inputs.files(fileTree(patchDir))
     inputs.files(fileTree(foodDir))
-    inputs.file(resources.resolve("hycolony/id-map.json"))
     inputs.files(langFiles)
     val stamp = layout.buildDirectory.file("tmp/checkFoodTooltips.stamp")
     outputs.file(stamp)
     doLast {
-        val idMap = groovy.json.JsonSlurper().parse(resources.resolve("hycolony/id-map.json")) as Map<*, *>
-        val food = idMap["food"] as Map<*, *>
         val foods = foodDir.listFiles().orEmpty().filter { it.name.endsWith(".json") }
             .associate { it.name.removeSuffix(".json") to (groovy.json.JsonSlurper().parse(it) as Map<*, *>) }
-        // Each food's header, then its description line; the bench decides which foods are raw.
-        val expected = listOf("# cookingBench=${food["cookingBench"]}") + foods.keys.sorted().flatMap { id ->
+        // Each food's header, then its description line.
+        val expected = foods.keys.sorted().flatMap { id ->
             val f = foods.getValue(id)
             listOf(
                 "# $id nutrition=${f["Nutrition"]} tier=${f["Tier"]} poisonous=${f["Poisonous"] ?: false}",
