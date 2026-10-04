@@ -2,6 +2,7 @@ package dev.hycolony.plugin.command;
 
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.plugin.WorldRuntime;
+import dev.hycolony.plugin.crafting.JobTagAsset;
 
 /** Selftest step: the game's recipes and benches reached the crafting core (SP3b-1). */
 final class RecipesSelfTest {
@@ -25,5 +26,6 @@ final class RecipesSelfTest {
                 FARMING_BENCH + " tier 2 upgrade cost",
                 !catalog.benchUpgradeCost(FARMING_BENCH, 1, 2).isEmpty(),
                 "empty");
+        report.line("job tag files (" + JobTagAsset.all().size() + ")", true, "");
     }
 }

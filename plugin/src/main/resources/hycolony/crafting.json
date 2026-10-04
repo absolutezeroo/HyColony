@@ -2,8 +2,6 @@
   "jobs": {
     "hycolony:farmer": {
       "allow": [ { "bench": "Farmingbench", "categories": ["Seeds", "Essence"] } ],
-      "includeItems": [],
-      "excludeItems": [],
       "custom": [
         { "id": "farmer_seeds_wheat", "hytaleRecipe": "Plant_Seeds_Wheat_Recipe_Generated_0", "minBuildingLevel": 1, "maxBuildingLevel": 5 },
         { "id": "farmer_seeds_lettuce", "hytaleRecipe": "Plant_Seeds_Lettuce_Recipe_Generated_0", "minBuildingLevel": 1, "maxBuildingLevel": 5 },
@@ -17,9 +15,5 @@
         { "id": "farmer_seeds_chilli", "hytaleRecipe": "Plant_Seeds_Chilli_Recipe_Generated_0", "minBuildingLevel": 5, "maxBuildingLevel": 5 }
       ]
     }
-  },
-  "reduceable": {
-    "ingredients": [],
-    "excludedProducts": []
   }
 }

@@ -51,6 +51,7 @@ public final class HyColonyPlugin extends JavaPlugin {
             return null;
         });
         ColonyConfig colonyConfig = config.get().toCore();
+        OpenAssetTypes.register(getAssetRegistry());
         // Sub-plugin asset packs must be registered here, before LoadAssetEvent (plugin-b-api § 21.1).
         packs = SubPlugins.load(this, config.get().subPlugins());
         packs.requireDomumVariants(); // before LoadAssetEvent, when HyDomum creates them

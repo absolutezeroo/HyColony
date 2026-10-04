@@ -12,6 +12,7 @@ import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.block.HytaleTapeBlocks;
+import dev.hycolony.plugin.crafting.HytaleJobTags;
 import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.food.HytaleCookingCatalog;
@@ -53,7 +54,9 @@ final class WorldPorts {
                         ids.sleepParticle(),
                         ids.food().particle()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
-                new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
+                // The job tags are assets, loaded only now (crafting.json was read at setup).
+                new CraftingSetup(
+                        HytaleRecipeCatalog.load(), setup.craftingRules().withTags(HytaleJobTags.load())),
                 new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()),
                 new CookingSetup(
                         new HytaleCookingCatalog(ids.food(), foods),
