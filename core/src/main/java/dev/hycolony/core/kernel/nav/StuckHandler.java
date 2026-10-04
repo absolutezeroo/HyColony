@@ -26,8 +26,9 @@ import org.jspecify.annotations.Nullable;
  * path); the levels collapse to repath, teleport, give up. MC's citizen lands next to its goal after
  * completeStuckAction; a Hytale teleport can land it under a roof two blocks off, so the walk is also given up when it
  * circles for a global timeout after the teleport. A walk started without teleport (to a spot never checked, which
- * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless, and hurts the citizen; ours
- * is hurt on {@link Action#TELEPORT} only (the listener's, CitizenWalkReports).
+ * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless. A citizen is hurt as MC's
+ * completeStuckAction hurts it on a teleport or a give-up away from its destination (the listener's,
+ * CitizenWalkReports).
  */
 public final class StuckHandler {
     public enum Action {
@@ -40,7 +41,9 @@ public final class StuckHandler {
     static final int CHECK_INTERVAL = 10;
     static final int DELAY_BEFORE_ACTIONS = 5 * 20;
     static final int NEXT_ACTION_DELAY = 200;
-    static final double MIN_TARGET_DIST = 3;
+    /** MC MIN_TARGET_DIST: blocks from the destination within which a body is never stuck, only close enough. */
+    public static final double MIN_TARGET_DIST = 3;
+
     static final int MIN_TP_DELAY = 120 * 20;
     static final int TIME_PER_BLOCK = 200;
     static final int MIN_DIST_FOR_TP = 10;

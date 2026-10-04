@@ -18,8 +18,10 @@ final class DeathNotice {
     private DeathNotice() {}
 
     /**
-     * Tells the colony's important players that {@code dead} died at {@code at} of {@code cause}. Deviation from MC: no
-     * hover with the position and distance (Hytale messages have none).
+     * Tells the colony's important players that {@code dead} died at {@code at} of {@code cause}. Deviation from MC
+     * (Hytale world): Minecraft's death message (getCombatTracker().getDeathMessage()) → our text per Hytale damage
+     * cause, or naming the killer (Hytale's own death texts speak to the player: "You were killed…"). Deviation from
+     * MC: no hover with the position and distance (Hytale messages have none).
      */
     static void send(Colony colony, CitizenData dead, BlockPos at, DeathCause cause) {
         String where = "%hycolony.ui.direction.long." + Directions.of(colony.center(), at);
@@ -34,8 +36,8 @@ final class DeathNotice {
 
     /**
      * MC Colony.getImportantMessageEntityPlayers: the owner and members allowed RECEIVE_MESSAGES, and the colony
-     * managers by rank. Deviation from MC: MC adds only managers online and subscribed; the notifier skips offline
-     * players.
+     * managers by rank. Deviation from MC: MC reaches only the players close to the colony (its subscribers), as every
+     * HyColony colony message to its members does (SleepNotice); the notifier skips offline players.
      */
     private static Set<UUID> importantPlayers(Colony colony) {
         Set<UUID> to = new LinkedHashSet<>();

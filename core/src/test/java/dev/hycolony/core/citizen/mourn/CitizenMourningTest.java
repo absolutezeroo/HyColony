@@ -74,7 +74,9 @@ class CitizenMourningTest {
 
         tick(ai, 60);
 
-        assertTrue(t.bodies.moves.contains(Vec3.center(HALL)), "MC: more than 225 blocks away: " + t.bodies.moves);
+        assertTrue(
+                t.bodies.moves.stream().anyMatch(m -> m.distance(Vec3.center(HALL)) < 3),
+                "MC walkToBuilding, more than 225 blocks away: " + t.bodies.moves);
     }
 
     @Test

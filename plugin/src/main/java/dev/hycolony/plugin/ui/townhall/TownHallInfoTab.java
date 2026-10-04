@@ -74,7 +74,11 @@ final class TownHallInfoTab implements TownHallTab {
         }
     }
 
-    /** MC CitizenDiedEvent.getDeathCause: killed by {@code killer} (a name or %key), else died of {@code cause}. */
+    /**
+     * MC CitizenDiedEvent.getDeathCause: killed by {@code killer} (a name or %key), else died of {@code cause}.
+     * Deviation from MC (Hytale world): Minecraft's death message with "Citizen" for the name → our text per Hytale
+     * damage cause or killer (Hytale's death texts speak to the player).
+     */
     private static Message deathCause(String cause, String killer) {
         return killer.isEmpty()
                 ? HytaleNotifier.toMessage(

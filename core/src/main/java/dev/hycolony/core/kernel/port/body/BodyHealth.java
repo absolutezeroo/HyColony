@@ -26,9 +26,8 @@ public interface BodyHealth {
     void heal(BodyId body, double amount);
 
     /**
-     * The position of the nearest living hostile creature within {@code range} blocks of the body horizontally and 3
-     * vertically (MC EntityAICitizenAvoidEntity.getClosestToAvoid: a Monster in its bounding box inflated); empty
-     * without one.
+     * The position of the nearest living hostile creature in the body's bounding box inflated by {@code range} blocks
+     * horizontally and 3 vertically (MC EntityAICitizenAvoidEntity.getClosestToAvoid, a Monster); empty without one.
      */
     Optional<Vec3> nearestThreat(BodyId body, double range);
 

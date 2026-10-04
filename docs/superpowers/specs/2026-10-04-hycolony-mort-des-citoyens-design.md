@@ -24,9 +24,10 @@ Succès :
 - **Plafond par coup** (système, MC `EntityCitizen.handleDamagePerformed`) : un coup ne retire jamais plus de 20 % de la vie maximale, avant l'armure, comme MC.
 - **Filtre `HURT_CITIZEN`** (système, MC `EntityCitizen.hurt`) : porté tel quel, à l'échelle ci-dessus.
 - **Fin de l'invulnérabilité** : retirée du rôle ; le plugin enlève aussi le composant des corps déjà sauvés, que `RoleBuilderSystem` ne retire jamais (recherche § 2.4).
-- **Mur** (C-19, système MC `EntityCitizen.handleInWallDamage`) : un dégât `Suffocation` est annulé et le corps est téléporté hors du bloc. La noyade, les chutes et le vide restent ceux de Hytale.
+- **Mur** (C-19, système MC `EntityCitizen.handleInWallDamage`) : un dégât `Suffocation` est annulé et le citoyen est réveillé puis téléporté hors du bloc (MC `TeleportHelper.teleportCitizen`). `Deviation from MC (Hytale world): first IN_WALL hit at once → first Suffocation hit, once the Oxygen stat ran out (about 17 s, Oxygen.json)`. La noyade, les chutes et le vide restent ceux de Hytale.
 - **Soin après un coup** (C-20), `Deviation from MC (Hytale world): Minecraft's 100-tick attacker memory → Health.json's NoDamageTaken delay (15 s)` : 300 ticks du cœur. La règle « seul un attaquant bloque le soin » de MC est gardée. La mémoire passe du plugin (`BodyVitals.HURT_MEMORY_TICKS`) au cœur.
-- **Blocage complet** (C-23, système MC `PathingStuckHandler.completeStuckAction`) : 20 % de la vie maximale, `Deviation from MC (Hytale world): STUCK_DAMAGE → Crush` (cause la plus proche, réduite par l'armure comme chez MC).
+- **Blocage complet** (C-23, système MC `PathingStuckHandler.completeStuckAction`) : 20 % de la vie maximale à chaque action complète, téléportation ou abandon loin du but (près du but, MC remet ses délais à zéro), `Deviation from MC (Hytale world): STUCK_DAMAGE → Crush` (cause la plus proche, réduite par l'armure comme chez MC).
+- **Coup sur un dormeur** : il se réveille (Minecraft `LivingEntity.hurt`, `stopSleeping`).
 - **Feu** (C-21) : l'immunité, ajout demandé, reste.
 
 ## 3. La mort (système : MC `EntityCitizen.die`)
@@ -38,8 +39,8 @@ Le cœur (`CitizenDeath`), dans l'ordre de MC :
 2. le deuil des co-résidents (`updateCitizenMourn`) : état `MOURN` le jour suivant, sans travail (MC `EntityAIMournCitizen`) ;
 3. la statistique `DEATH` du jour ;
 4. l'inventaire et l'armure tombent au sol à la position du mort. `Deviation from MC (Hytale world): dropped experience → none, Hytale has no experience`. Pas de tombe (MC la rend optionnelle ; hors périmètre) ;
-5. le message aux membres qui reçoivent les messages et aux gestionnaires : nom, cause, direction depuis le centre de la colonie (en-US et fr-FR) ;
-6. emploi, coursier et logement libérés ; ses requêtes annulées ;
+5. le message aux membres qui reçoivent les messages et aux gestionnaires : nom, cause, direction depuis le centre de la colonie (en-US et fr-FR). `Deviation from MC (Hytale world): Minecraft's death message → our text per Hytale damage cause or killer` (les textes de mort de Hytale s'adressent au joueur) ; le journal de la mairie fait de même ;
+6. emploi, coursier et logement libérés (MC `removeCitizen` sur chaque module de chaque hutte) ; ses requêtes annulées dans chaque hutte de travail, qu'il y travaille ou non (MC `onRemoval`) ;
 7. citoyen, corps et IA retirés ;
 8. l'entrée « mort » du journal de la colonie (le résumé du soir de MC, `computeNews`, n'est pas porté dans HyColony) ;
 9. l'événement interne, puis l'événement d'API `CitizenDied` (nouveau type public de l'API, version mineure).
@@ -50,7 +51,8 @@ Les nouveaux citoyens arrivent ensuite par le mécanisme existant.
 
 - Un fournisseur d'attitude de Hytale (`AttitudeView.registerProvider`, priorité 150) rend `HOSTILE` un rôle du groupe `HyColony_Hostile` face à un corps de citoyen.
 - Clé `MobAttackCitizens` (défaut `true`, comme MC `mobattackcitizens`) dans la section `Combat` de `config.json`, comme la section `combat` de MC.
-- Fuite (système, MC `EntityCitizen.performMoveAway` et `EntityAICitizenAvoidEntity`) : un citoyen non garde, frappé, fuit l'attaquant. Le cœur décide ; le plugin fournit « monstre hostile proche » et « s'éloigner de ».
+- Fuite (système, MC `EntityCitizen.performMoveAway` et `EntityAICitizenAvoidEntity`) : un citoyen non garde, frappé, fuit l'attaquant. Le cœur décide ; le plugin fournit « monstre hostile proche » (boîte du corps gonflée de 5 blocs, 3 en hauteur). Les courses passent par un marcheur et son anti-blocage, donc finissent toujours ; un repas, le coucher ou le deuil interrompent la fuite comme chez MC (`decideAiTask`). Écarts : pas d'appel à l'aide (pas de gardes), pas de son de fuite (pas encore de voix de citoyen), pas de ligne de vue, vitesse inchangée (MC 1,1 près d'un monstre, 0,8 plus loin : notre facteur de vitesse est celui du métier) ; `Deviation from MC (Hytale world): "whole" within 4 of MC's 20 points → the same share of 100`.
+- Deuil : la marche vers la mairie passe par `walkToBuilding` (anti-blocage) ; regard à la hauteur des yeux du modèle Hytale (1,6, `Player.json`) ; pas de bulle « I'm still processing… » (interactions non portées).
 
 ## 5. Persistance et API
 

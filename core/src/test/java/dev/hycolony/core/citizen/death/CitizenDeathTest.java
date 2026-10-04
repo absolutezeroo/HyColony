@@ -23,6 +23,9 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +110,22 @@ class CitizenDeathTest {
 
         assertFalse(workers.workers().contains(1));
         assertEquals(List.of(2), house.module(LivingModule.class).orElseThrow().residents());
+    }
+
+    @Test
+    void itsRequestsAtAWorkplaceGoEvenWhereItDidNotWork() {
+        Building work = hut(ConstructionBuildingTypes.BUILDER, new BlockPos(30, 64, 0));
+        RequestToken token =
+                c.requests().createAndAssign(work, new StackRequest(new ItemKey("Armor_Iron_Head"), 1, 1, true), 1);
+
+        CitizenDeath.die(c, 1, WHERE, FALL);
+
+        assertTrue(
+                c.requests()
+                        .get(token)
+                        .map(r -> r.state() == RequestState.CANCELLED)
+                        .orElse(true),
+                "MC WorkerBuildingModule.onRemoval: cancelAllRequestsOfCitizenOrBuilding");
     }
 
     @Test

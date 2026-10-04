@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen.hurt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -26,7 +27,8 @@ class FleeAITest {
 
     private final TestContexts t = new TestContexts();
     private final BodyId body = t.bodies.existing(1, 1, HERE);
-    private final CitizenAI ai = new CitizenAI(colony(), new CitizenData(1), body);
+    private final CitizenData data = new CitizenData(1);
+    private final CitizenAI ai = new CitizenAI(colony(), data, body);
 
     private Colony colony() {
         Colony c = new Colony(
@@ -54,6 +56,37 @@ class FleeAITest {
         assertEquals(5, Math.hypot(to.x() - HERE.x(), to.z() - HERE.z()), EPS);
         tick(1);
         assertEquals(CitizenState.IDLE, ai.state());
+    }
+
+    @Test
+    void aRunThatCannotMoveStillEndsAndTheFlightToo() {
+        t.bodies.frozen = true;
+        ai.hit(new Vec3(5.5, 64, 0.5), false);
+
+        tick(2000);
+
+        assertEquals(CitizenState.IDLE, ai.state(), "MC: the stuck handler stops a run; CLAUDE.md § 4");
+    }
+
+    @Test
+    void mourningTakesOverAFlightAsMcDecideAiTask() {
+        ai.hit(new Vec3(5.5, 64, 0.5), false);
+        tick(1);
+        data.mourning().addDeceased("Bob");
+        data.mourning().onWakeUp();
+
+        tick(11);
+
+        assertEquals(CitizenState.MOURN, ai.state(), "MC: another state than lastState ends FLEE");
+    }
+
+    @Test
+    void aHitWakesASleeper() {
+        data.setAsleep(true);
+
+        ai.hit(null, true);
+
+        assertFalse(data.asleep(), "Minecraft LivingEntity.hurt: stopSleeping");
     }
 
     @Test

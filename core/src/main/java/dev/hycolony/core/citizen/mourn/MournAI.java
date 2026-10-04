@@ -3,10 +3,13 @@ package dev.hycolony.core.citizen.mourn;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.citizen.wander.CitizenWander;
+import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
@@ -17,13 +20,18 @@ import org.jspecify.annotations.Nullable;
 /**
  * A mourning citizen's day (MC EntityAIMournCitizen): it stares at a citizen close by, or walks to the town hall (else
  * its home) when far from it, else wanders around. Deviation from MC: no graveyard nor graves (not ported), so its
- * graveyard steps never run; it stares at its own colony's citizens only.
+ * graveyard steps never run; it stares at its own colony's citizens only; no "I'm still processing X's death" chat
+ * (MC CitizenAI's StandardInteraction: citizen interactions are not ported).
  */
 public final class MournAI {
     /** MC: each mourning step runs every 20 ticks. */
     public static final int RATE_TICKS = 20;
-    /** MC Player eye height (1.62), the citizen's model: where a mourner looks at another citizen. */
-    static final double EYE_HEIGHT = 1.62;
+    /**
+     * Where a mourner looks at another citizen, above its feet. Deviation from MC (Hytale world): MC's citizen eye
+     * height (0.95 of its 1.8, AbstractCivilianEntity.getStandingEyeHeight) → the citizen model's EyeHeight, 1.6
+     * (Server/Models/Human/Player.json, PlayerTestModel_V's parent).
+     */
+    static final double EYE_HEIGHT = 1.6;
     /** MC MIN_DESTINATION_TO_LOCATION: past this x + z distance from its mourning place, it walks there. */
     static final int MIN_DESTINATION_TO_LOCATION = 225;
     /** MC AVERAGE_STARE_TIME: a stare ends with one chance in this many at each step. */
@@ -43,8 +51,11 @@ public final class MournAI {
     private final CitizenBodies bodies;
     private final CitizenWander wander;
     private final RandomGenerator random;
+    private final BlockApproach approach;
     private Step step = Step.DECIDE;
     private @Nullable BodyId stared;
+    /** Where it walks to mourn; null before its first walk there. */
+    private @Nullable Building place;
 
     public MournAI(Colony colony, CitizenData data, BodyId body, CitizenWander wander) {
         this.colony = colony;
@@ -53,6 +64,10 @@ public final class MournAI {
         this.bodies = colony.context().bodies();
         this.wander = wander;
         this.random = colony.context().random();
+        this.approach = new BlockApproach(
+                colony.context().ports(),
+                new BodyWalker(
+                        bodies, body, colony.context().clock()::currentTick, new CitizenWalkReports(colony, data)));
     }
 
     /** MC reset, on entering MOURN: it decides afresh. */
@@ -66,7 +81,7 @@ public final class MournAI {
         switch (step) {
             case DECIDE -> decide();
             case WALKING_TO_TOWNHALL -> {
-                if (bodies.navStatus(body) != NavStatus.MOVING) {
+                if (place == null || approach.walkToBuilding(place)) {
                     step = Step.DECIDE; // MC walkToBuilding done: IDLE, then MOURN decides again
                 }
             }
@@ -93,9 +108,11 @@ public final class MournAI {
         }
         bodies.lookAt(
                 body, new Vec3(here.get().x(), here.get().y() - 10, here.get().z()));
-        Optional<BlockPos> place = mournPlace();
-        if (place.isPresent() && distance2D(here.get().toBlockPos(), place.get()) > MIN_DESTINATION_TO_LOCATION) {
-            bodies.moveTo(body, Vec3.center(place.get()));
+        Building to = mournPlace().orElse(null);
+        if (to != null && distance2D(here.get().toBlockPos(), to.position()) > MIN_DESTINATION_TO_LOCATION) {
+            place = to;
+            approach.forget();
+            approach.walkToBuilding(to);
             step = Step.WALKING_TO_TOWNHALL;
             return;
         }
@@ -149,9 +166,11 @@ public final class MournAI {
     }
 
     /** MC getMournLocation: the town hall, else its home; empty with neither. */
-    private Optional<BlockPos> mournPlace() {
-        Optional<BlockPos> hall = colony.buildings().townHall().map(Building::position);
-        return hall.isPresent() ? hall : Optional.ofNullable(data.homeBuilding());
+    private Optional<Building> mournPlace() {
+        Optional<Building> hall = colony.buildings().townHall();
+        return hall.isPresent()
+                ? hall
+                : Optional.ofNullable(data.homeBuilding()).flatMap(colony.buildings()::at);
     }
 
     /** MC BlockPosUtil.getDistance2D: |dx| + |dz|. */

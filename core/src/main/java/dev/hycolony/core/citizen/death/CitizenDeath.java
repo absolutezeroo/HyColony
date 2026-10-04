@@ -30,9 +30,9 @@ public final class CitizenDeath {
 
     /**
      * Citizen {@code citizenId} of {@code colony} died at {@code at} of {@code cause}: every other citizen is
-     * saddened and its housemates will mourn it, the death is counted, its job and home are freed, what it carried
-     * falls where it died, the colony is told and logs it, and the citizen goes for good; then {@link CitizenDied} is
-     * posted. False, changing nothing, for a citizen the colony does not have (already dead).
+     * saddened and its housemates will mourn it, the death is counted, what it carried falls where it died, the
+     * colony is told, its huts let it go, the citizen goes for good and the colony logs it; then {@link CitizenDied}
+     * is posted. False, changing nothing, for a citizen the colony does not have (already dead).
      */
     public static boolean die(Colony colony, int citizenId, Vec3 at, DeathCause cause) {
         CitizenData dead = colony.citizens().get(citizenId).orElse(null);
@@ -42,10 +42,11 @@ public final class CitizenDeath {
         BlockPos pos = at.toBlockPos();
         sadden(colony, dead);
         colony.registries().statistics().increment(ColonyStatistics.DEATH, colony.day());
-        free(colony, dead);
         drop(colony, dead, pos);
         DeathNotice.send(colony, dead, pos, cause);
+        free(colony, dead);
         colony.citizens().remove(citizenId);
+        // Deviation from MC: MC's evening summary (Colony computeNews) is not ported; the log entry stays.
         colony.log()
                 .addAt(
                         pos,

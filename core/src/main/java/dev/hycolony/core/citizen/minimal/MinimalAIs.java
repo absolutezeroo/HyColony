@@ -31,7 +31,7 @@ public final class MinimalAIs {
             CitizenWander wander,
             TickRateStateMachine<CitizenState> machine) {
         this.mourn = new MournAI(colony, data, body, wander);
-        this.flee = new FleeAI(colony, body);
+        this.flee = new FleeAI(colony, data, body);
         this.machine = machine;
         machine.addTransition(
                 new AITarget<>(CitizenState.MOURN, (IStateSupplier<CitizenState>) mourn::tick, MournAI.RATE_TICKS));

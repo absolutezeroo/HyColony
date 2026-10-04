@@ -23,7 +23,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * A citizen suffocating in a block takes no damage and is moved out of it ({@link CitizenHurt#outOfWall}, MC
  * EntityCitizen.handleInWallDamage): Hytale's {@code Suffocation} (DamageSystems.CanBreathe out of a fluid) is MC's
- * IN_WALL. Drowning stays Hytale's.
+ * IN_WALL. Drowning stays Hytale's. Deviation from MC (Hytale world): MC's first IN_WALL hit, at once → Hytale's
+ * first Suffocation hit, once its Oxygen stat ran out (about 17 s, Server/Entity/Stats/Oxygen.json).
  */
 public final class CitizenWallFilter extends DamageEventSystem {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();

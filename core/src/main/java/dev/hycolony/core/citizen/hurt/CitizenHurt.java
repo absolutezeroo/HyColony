@@ -9,8 +9,9 @@ import dev.hycolony.core.kernel.port.body.BodyHealth;
 
 /**
  * Who may hurt a citizen and how much a hit takes before its armour (MC EntityCitizen.hurt, checkIfValidDamageSource
- * and handleDamagePerformed), and the harm its surroundings do (a wall, a stuck walk). Raids and guards are not
- * ported: their branches are left out.
+ * and handleDamagePerformed), and the harm its surroundings do (a wall, a stuck walk). Raids, guards and the PvP mode
+ * (MC pvp_mode: a colony's citizen hitting another colony's makes it hostile) are not ported: their branches are
+ * left out.
  */
 public final class CitizenHurt {
     /** MC handleDamagePerformed: a hit takes at most this share of the maximum health (MC 0.2f). */
@@ -42,16 +43,21 @@ public final class CitizenHurt {
 
     /**
      * MC handleInWallDamage: a citizen suffocating in a block takes no damage and is moved to a free spot where it
-     * stands (MC TeleportHelper.teleportCitizen at its blockPosition). Nothing for a body without a position.
+     * stands (MC TeleportHelper.teleportCitizen at its blockPosition: woken first, its walks reset, through its AI).
+     * Nothing for a body without a position.
      */
     public static void outOfWall(Colony colony, BodyId body) {
         CitizenBodies bodies = colony.context().bodies();
-        bodies.position(body).ifPresent(at -> bodies.teleport(body, at));
+        bodies.position(body)
+                .ifPresent(at -> colony.citizens()
+                        .citizenOf(body)
+                        .flatMap(d -> colony.citizens().ai(d.id()))
+                        .ifPresentOrElse(ai -> ai.teleport(at), () -> bodies.teleport(body, at)));
     }
 
     /**
-     * MC PathingStuckHandler.completeStuckAction: a citizen teleported out of a full stuck takes {@link
-     * #STUCK_DAMAGE_SHARE} of its maximum health (MC withTakeDamageOnStuck(0.2f), MinecoloniesAdvancedPathNavigate).
+     * MC PathingStuckHandler.completeStuckAction: a citizen whose walk is fully stuck takes {@link #STUCK_DAMAGE_SHARE}
+     * of its maximum health (MC withTakeDamageOnStuck(0.2f), MinecoloniesAdvancedPathNavigate), teleported or not.
      * Nothing without a living body.
      */
     public static void stuck(Colony colony, CitizenData citizen) {

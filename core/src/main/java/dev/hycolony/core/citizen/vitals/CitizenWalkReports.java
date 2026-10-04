@@ -13,8 +13,8 @@ import dev.hycolony.core.kernel.port.NavStatus;
 
 /**
  * One citizen's walks as its vital signs see them: each start, end and stuck action is kept in its
- * {@link CitizenVitals}, and posted as a {@link CitizenDebugEvents} only while someone listens; a teleport out of a
- * full stuck also hurts it ({@link CitizenHurt#stuck}). Every walker of that citizen is given one.
+ * {@link CitizenVitals}, and posted as a {@link CitizenDebugEvents} only while someone listens; a full stuck also
+ * hurts it ({@link CitizenHurt#stuck}). Every walker of that citizen is given one.
  */
 public final class CitizenWalkReports implements WalkListener {
     private final Colony colony;
@@ -47,7 +47,11 @@ public final class CitizenWalkReports implements WalkListener {
     @Override
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
         long now = now();
-        if (action == StuckHandler.Action.TELEPORT) {
+        // MC completeStuckAction (which hurts) is a teleport, or a give-up away from the goal; by it, MC is never
+        // stuck.
+        if (action == StuckHandler.Action.TELEPORT
+                || (action == StuckHandler.Action.GIVE_UP
+                        && at.distance(Vec3.center(target)) >= StuckHandler.MIN_TARGET_DIST)) {
             CitizenHurt.stuck(colony, citizen);
         }
         CitizenVitals v = citizen.vitals();

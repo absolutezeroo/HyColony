@@ -77,6 +77,16 @@ class CitizenHurtTest {
     }
 
     @Test
+    void aSleeperInAWallWakesUpFirst() {
+        citizen.setAsleep(true);
+
+        CitizenHurt.outOfWall(colony, body);
+
+        assertFalse(citizen.asleep(), "MC TeleportHelper.teleportCitizen: onWakeUp before the teleport");
+        assertEquals(List.of(new Vec3(0, 64, 0)), t.bodies.teleports);
+    }
+
+    @Test
     void aFullStuckCostsAFifthOfMaxHealthAndARepathNothing() {
         CitizenWalkReports walks = new CitizenWalkReports(colony, citizen);
         walks.stuck(new BlockPos(5, 64, 5), new Vec3(1, 64, 1), StuckHandler.Action.REPATH);
@@ -84,6 +94,16 @@ class CitizenHurtTest {
 
         walks.stuck(new BlockPos(5, 64, 5), new Vec3(1, 64, 1), StuckHandler.Action.TELEPORT);
         assertEquals(80, t.bodies.bodies.get(body).health, EPS, "MC withTakeDamageOnStuck(0.2f)");
+    }
+
+    @Test
+    void aGiveUpFarFromItsGoalHurtsAsMcButNotOneBesideIt() {
+        CitizenWalkReports walks = new CitizenWalkReports(colony, citizen);
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(5.5, 64, 6.5), StuckHandler.Action.GIVE_UP);
+        assertEquals(100, t.bodies.bodies.get(body).health, EPS, "MC resets its timers by its goal");
+
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(30, 64, 1), StuckHandler.Action.GIVE_UP);
+        assertEquals(80, t.bodies.bodies.get(body).health, EPS, "MC completeStuckAction hurts, teleported or not");
     }
 
     @Test

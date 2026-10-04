@@ -129,12 +129,18 @@ public final class WorkerModule
         return workers.removeIf(id -> !keep.test(id));
     }
 
-    /** MC removeCitizen: {@link #fire}s {@code citizenId}; false when it does not work here. */
+    /**
+     * MC removeCitizen: {@link #fire}s {@code citizenId}; its requests from this hut go even when it does not work here
+     * (MC onRemoval, cancelAllRequestsOfCitizenOrBuilding). False when it did not work here.
+     */
     @Override
     public boolean removeCitizen(Colony c, Building b, int citizenId) {
-        boolean works = workers.contains(citizenId);
+        if (!workers.contains(citizenId)) {
+            c.requests().cancelAllFrom(b.requesterId(), citizenId);
+            return false;
+        }
         fire(c, b, citizenId);
-        return works;
+        return true;
     }
 
     public void fire(Colony c, Building b, int citizenId) {

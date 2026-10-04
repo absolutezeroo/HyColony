@@ -53,6 +53,8 @@ public final class CitizenAI {
      * citizen whose meal ended hungry goes back to eat at once, as in MC.
      */
     private boolean decidedEating;
+    /** The state it fled from (MC lastState during FLEE). */
+    private CitizenState fleeFrom = CitizenState.IDLE;
 
     private int workTicks;
 
@@ -131,16 +133,20 @@ public final class CitizenAI {
     }
 
     /**
-     * MC EntityCitizen.performMoveAway, after a hit but from a {@code fall}: it runs from {@code attacker} (where it
-     * stands) and flees ({@link MinimalAIs}) from the next tick, leaving its meal or work; hurt by no entity, it only
-     * steps away.
+     * After a hit: woken if asleep; then (MC EntityCitizen.performMoveAway, but from a {@code fall}) it runs from
+     * {@code attacker} (where it stands) and flees ({@link MinimalAIs}) from the next tick, leaving its meal or work;
+     * hurt by no entity, it only steps away.
      */
     public void hit(@Nullable Vec3 attacker, boolean fall) {
+        sleep.wakeUp(); // Minecraft LivingEntity.hurt: a hurt sleeper wakes up
         if (!fall) {
             minimal.hit(Optional.ofNullable(attacker), now -> {
                 leaveEating(now);
                 if (now == CitizenState.WORKING) {
                     watch.leftWork(WorkExit.FLEE);
+                }
+                if (now != CitizenState.FLEE) {
+                    fleeFrom = now;
                 }
             });
         }
@@ -209,10 +215,27 @@ public final class CitizenAI {
     private @Nullable CitizenState decide() {
         CitizenState now = machine.getState();
         if (now == CitizenState.FLEE) {
-            // Deviation from MC: a flight is not cut short; MC's decideAiTask keeps FLEE until its state would change.
+            return decideWhileFleeing();
+        }
+        CitizenState next = decideFrom(now);
+        return next == now ? null : next;
+    }
+
+    /**
+     * MC decideAiTask in FLEE: while its decision stays the state it fled from (MC lastState), it keeps fleeing;
+     * another one (a meal, bedtime) takes over. Fled from its bed, it flees on (MC keeps SLEEP as lastState at night).
+     */
+    private @Nullable CitizenState decideWhileFleeing() {
+        if (fleeFrom == CitizenState.SLEEP) {
             return null;
         }
-        CitizenState next = switch (sleep.decide(now == CitizenState.SLEEP)) {
+        CitizenState next = decideFrom(fleeFrom);
+        return next == null || next == fleeFrom ? null : next;
+    }
+
+    /** The sleep, hunger and mourning parts of MC calculateNextState from state {@code now}; null to stay asleep. */
+    private @Nullable CitizenState decideFrom(CitizenState now) {
+        return switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
                 machine.setCurrentDelay(SleepDecision.SLEEP_DECIDE_DELAY_TICKS);
                 yield null;
@@ -227,7 +250,6 @@ public final class CitizenAI {
             case WAKE_UP -> decideMourning(decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now));
             case NONE -> decideMourning(decideHunger(now));
         };
-        return next == now ? null : next;
     }
 
     /**

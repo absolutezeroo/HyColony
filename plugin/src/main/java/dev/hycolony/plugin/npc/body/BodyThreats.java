@@ -3,6 +3,7 @@ package dev.hycolony.plugin.npc.body;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -16,9 +17,9 @@ import org.joml.Vector3d;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The hostile creatures near a citizen body (MC EntityAICitizenAvoidEntity.getClosestToAvoid: a Monster in its
+ * The hostile creatures near a citizen body (MC EntityAICitizenAvoidEntity.getClosestToAvoid: a Monster in the body's
  * bounding box inflated by the range, 3 up and down): an NPC of {@link HostileGroup}, not dying. Deviation from MC:
- * no line-of-sight check. World thread only.
+ * no line-of-sight check (MC getSensing().hasLineOfSight). World thread only.
  */
 public final class BodyThreats {
     /** MC getClosestToAvoid: the box is inflated 3 blocks up and down. */
@@ -42,10 +43,14 @@ public final class BodyThreats {
         }
         Vector3d p = t.getPosition();
         Vec3 here = new Vec3(p.x, p.y, p.z);
+        BoundingBox bounds = store.getComponent(ref, BoundingBox.getComponentType());
+        Vector3d low = bounds == null ? new Vector3d() : bounds.getBoundingBox().getMin();
+        Vector3d high =
+                bounds == null ? new Vector3d() : bounds.getBoundingBox().getMax();
         Vec3 best = null;
         for (Ref<EntityStore> other : TargetUtil.getAllEntitiesInBox(
-                new Vector3d(p.x - range, p.y - HALF_HEIGHT, p.z - range),
-                new Vector3d(p.x + range, p.y + HALF_HEIGHT, p.z + range),
+                new Vector3d(p.x + low.x - range, p.y + low.y - HALF_HEIGHT, p.z + low.z - range),
+                new Vector3d(p.x + high.x + range, p.y + high.y + HALF_HEIGHT, p.z + high.z + range),
                 store)) {
             Vec3 at = hostileAt(store, npcType, other);
             if (at != null && (best == null || here.distance(at) < here.distance(best))) {
