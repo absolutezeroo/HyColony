@@ -56,6 +56,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final BodyVitals vitals;
     private final HytaleBodyHealth health;
     private final HytaleBodySeats seats;
+    private final BodyThreats threats;
     private final HytaleStacks stacks;
     private final BodyRefs refs = new BodyRefs();
     private final BodyWalks walks;
@@ -74,7 +75,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
         this.vitals = new BodyVitals(world);
-        this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds, new BodyThreats(world, hostile));
+        this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds);
+        this.threats = new BodyThreats(world, hostile);
         this.seats = new HytaleBodySeats(world, refs::entity);
         this.walks = new BodyWalks(world);
     }
@@ -168,6 +170,13 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         TransformComponent t = store().getComponent(ref, TransformComponent.getComponentType());
         Vector3d p = t.getPosition();
         return Optional.of(new Vec3(p.x, p.y, p.z));
+    }
+
+    /** Through {@link BodyThreats}; empty for an unknown body. */
+    @Override
+    public Optional<Vec3> nearestThreat(BodyId body, double range) {
+        Ref<EntityStore> ref = refs.ref(body);
+        return ref == null ? Optional.empty() : threats.nearest(ref, range);
     }
 
     @Override

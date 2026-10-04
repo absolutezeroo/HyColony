@@ -35,6 +35,7 @@ import org.jspecify.annotations.Nullable;
 public final class CitizenHitFilter extends DamageEventSystem {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final Set<Dependency<EntityStore>> DEPENDENCIES = Set.of(
+            new SystemDependency<>(Order.AFTER, DamageSystems.FilterUnkillable.class), // a corpse's damage is gone
             new SystemDependency<>(Order.AFTER, DamageSystems.ScaleOutgoingDamageFromEntityEffects.class),
             new SystemDependency<>(Order.BEFORE, DamageSystems.ArmorDamageReduction.class),
             new SystemDependency<>(Order.BEFORE, DamageSystems.WieldingDamageReduction.class));

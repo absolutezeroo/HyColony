@@ -301,11 +301,15 @@ public final class CitizenManager {
 
     /**
      * MC CitizenManager.removeCivilian, for a death: citizen {@code id}, its body binding, its AI and its failed
-     * respawns go; the body is left to the world (Hytale's corpse fades by itself). Nothing for an unknown id.
+     * respawns go. Its corpse, no longer alive, is left to the world (Hytale's fades by itself); a living body bound
+     * meanwhile (a respawn before the death reached the core) is despawned. Nothing for an unknown id.
      */
     public void remove(int id) {
         citizens.remove(id);
-        bodies.remove(id);
+        BodyId body = bodies.remove(id);
+        if (body != null && ctx().bodies().isAlive(body)) {
+            ctx().bodies().despawn(body);
+        }
         ais.remove(id);
         failedRespawns.bodied(id);
         colony.markDirty();

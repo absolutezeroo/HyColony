@@ -47,6 +47,11 @@ abstract class ForwardingBodies implements CitizenBodies {
     }
 
     @Override
+    public Optional<Vec3> nearestThreat(BodyId body, double range) {
+        return bodies.nearestThreat(body, range);
+    }
+
+    @Override
     public void moveTo(BodyId body, Vec3 target) {
         bodies.moveTo(body, target);
     }

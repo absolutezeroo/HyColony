@@ -5,17 +5,22 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.SystemGroup;
+import com.hypixel.hytale.component.dependency.Dependency;
+import com.hypixel.hytale.component.dependency.Order;
+import com.hypixel.hytale.component.dependency.SystemDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
+import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.hurt.CitizenHurt;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -28,6 +33,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CitizenWallFilter extends DamageEventSystem {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    private static final Set<Dependency<EntityStore>> DEPENDENCIES =
+            Set.of(new SystemDependency<>(Order.AFTER, DamageSystems.FilterUnkillable.class));
 
     private final WorldRuntimes runtimes;
     private final CauseIndex suffocation = new CauseIndex("Suffocation");
@@ -45,6 +52,12 @@ public final class CitizenWallFilter extends DamageEventSystem {
     @Override
     public SystemGroup<EntityStore> getGroup() {
         return DamageModule.get().getFilterDamageGroup();
+    }
+
+    /** After FilterUnkillable: a corpse suffocating during its death animation is no longer moved. */
+    @Override
+    public Set<Dependency<EntityStore>> getDependencies() {
+        return DEPENDENCIES;
     }
 
     @Override

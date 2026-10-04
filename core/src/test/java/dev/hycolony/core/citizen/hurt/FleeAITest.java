@@ -15,9 +15,12 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.TestJobs;
 import java.util.UUID;
+import java.util.random.RandomGenerator;
 import org.junit.jupiter.api.Test;
 
 /** MC EntityCitizen.performMoveAway and EntityAICitizenAvoidEntity. */
@@ -78,6 +81,44 @@ class FleeAITest {
         tick(11);
 
         assertEquals(CitizenState.MOURN, ai.state(), "MC: another state than lastState ends FLEE");
+    }
+
+    @Test
+    void aMonsterNearMakesItRunFartherTheMoreItIsHurt() {
+        t.random = () -> (RandomGenerator) () -> 0L; // a run straight along +x
+        t.bodies.threats.add(new Vec3(12.5, 64, 0.5));
+
+        assertEquals(5 + 7, runAt(100), EPS, "MC getMoveAwayDist: almost whole");
+        assertEquals(5 + 15, runAt(60), EPS, "half health or more");
+        assertEquals(5 + 20, runAt(30), EPS, "worse");
+    }
+
+    /** How far a fleeing body at {@code health} of 100 runs from a monster near. */
+    private double runAt(double health) {
+        t.bodies.bodies.get(body).health = health;
+        FleeAI flee = new FleeAI(colony(), data, body);
+        flee.start();
+        flee.tick();
+        return t.bodies.moves.getLast().distance(HERE);
+    }
+
+    @Test
+    void aWorkerLeavesWorkToFlee() {
+        data.setJob(TestJobs.TYPE.factory().apply(data));
+        CitizenAI worker = new CitizenAI(colony(), data, body);
+        data.vitals().track();
+        for (int i = 0; i < 30 && worker.state() != CitizenState.WORKING; i++) {
+            t.clock.tick++;
+            worker.tick();
+        }
+
+        worker.hit(new Vec3(5.5, 64, 0.5), false);
+        t.clock.tick++;
+        worker.tick();
+
+        assertEquals(CitizenState.FLEE, worker.state());
+        assertTrue(data.vitals().history().stream()
+                .anyMatch(e -> e.detail().equals(Msg.of("hycolony.debug.history.leftWork.flee", "FLEE"))));
     }
 
     @Test

@@ -4,7 +4,10 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import java.util.logging.Level;
 
-/** A Hytale damage cause's index, resolved by id on first use (the asset map is loaded by then). World thread only. */
+/**
+ * A Hytale damage cause's index, resolved by id on first use (the asset map is loaded by then). Shared by every
+ * world's thread: two first uses at once both resolve the same index, a harmless race.
+ */
 public final class CauseIndex {
     /** The asset map's answer for an unknown id. */
     public static final int MISSING = Integer.MIN_VALUE;
@@ -12,8 +15,8 @@ public final class CauseIndex {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final String id;
-    private int index = MISSING;
-    private boolean resolved;
+    private volatile int index = MISSING;
+    private volatile boolean resolved;
 
     public CauseIndex(String id) {
         this.id = id;

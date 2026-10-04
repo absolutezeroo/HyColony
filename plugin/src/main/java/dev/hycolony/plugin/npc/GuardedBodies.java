@@ -58,6 +58,11 @@ public final class GuardedBodies implements CitizenBodies {
     }
 
     @Override
+    public Optional<Vec3> nearestThreat(BodyId body, double range) {
+        return guard("nearestThreat", () -> bodies.nearestThreat(body, range), Optional.empty());
+    }
+
+    @Override
     public void moveTo(BodyId body, Vec3 target) {
         run("moveTo", () -> bodies.moveTo(body, target));
     }

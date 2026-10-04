@@ -38,7 +38,7 @@ public final class CitizenAttitudeSystem extends StoreSystem<EntityStore> {
 
     private final WorldRuntimes runtimes;
     private final HostileGroup hostile;
-    private boolean failed;
+    private volatile boolean failed;
 
     public CitizenAttitudeSystem(WorldRuntimes runtimes, HostileGroup hostile) {
         this.runtimes = runtimes;

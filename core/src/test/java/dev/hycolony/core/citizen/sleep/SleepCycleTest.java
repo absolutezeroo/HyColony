@@ -122,6 +122,36 @@ class SleepCycleTest {
     }
 
     @Test
+    void mourningStartsWhenTheColonyWakesUpAndAWorkerLeavesWorkForIt() {
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        citizen(HALL);
+        d.vitals().track();
+        tickUntil(() -> state() == CitizenState.WORKING);
+        d.mourning().addDeceased("Bob");
+
+        c.citizens().onWakeUp(); // MC Colony.checkDayTime: citizenManager.onWakeUp()
+
+        assertTrue(d.mourning().isMourning(), "MC CitizenManager.onWakeUp");
+        tickUntil(() -> state() == CitizenState.MOURN);
+        assertTrue(
+                d.vitals().history().stream()
+                        .anyMatch(e -> e.detail().equals(Msg.of("hycolony.debug.history.leftWork.mourn", "MOURN"))),
+                "HyLens says why it stopped");
+    }
+
+    @Test
+    void aMournerStillGoesToBedAtNight() {
+        citizen(HALL);
+        d.mourning().addDeceased("Bob");
+        d.mourning().onWakeUp();
+        tickUntil(() -> state() == CitizenState.MOURN);
+
+        nightfall();
+
+        tickUntil(() -> state() == CitizenState.SLEEP); // MC calculateNextState: sleep before mourning
+    }
+
+    @Test
     void workerStopsWorkingAndGoesToBedAtNight() {
         d.setJob(TestJobs.TYPE.factory().apply(d));
         citizen(HALL);

@@ -1,12 +1,9 @@
 package dev.hycolony.core.kernel.port.body;
 
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
-import java.util.Optional;
 
 /**
- * A citizen body's health, what hunger does to it and what threatens it (MC EntityCitizen's health, heal,
- * MOVEMENT_SLOWDOWN and the monsters it avoids). Never
+ * A citizen body's health and what hunger does to it (MC EntityCitizen's health, heal and MOVEMENT_SLOWDOWN). Never
  * throws; an unknown body or one not alive in a loaded world answers 0 or false, and a call on it does nothing.
  */
 public interface BodyHealth {
@@ -24,12 +21,6 @@ public interface BodyHealth {
 
     /** Heals the body by {@code amount}, up to its maximum (MC LivingEntity.heal). */
     void heal(BodyId body, double amount);
-
-    /**
-     * The position of the nearest living hostile creature in the body's bounding box inflated by {@code range} blocks
-     * horizontally and 3 vertically (MC EntityAICitizenAvoidEntity.getClosestToAvoid, a Monster); empty without one.
-     */
-    Optional<Vec3> nearestThreat(BodyId body, double range);
 
     /** Slows the body down while it starves (MC MOVEMENT_SLOWDOWN 0: -15 % on top of its job's speed), or ends it. */
     void setStarving(BodyId body, boolean starving);

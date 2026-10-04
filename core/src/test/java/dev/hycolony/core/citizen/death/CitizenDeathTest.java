@@ -13,6 +13,7 @@ import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.EventLog;
 import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.permission.RankType;
 import dev.hycolony.core.colony.stats.ColonyStatistics;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -26,7 +27,9 @@ import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.testing.FakeNotifier;
 import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.TestJobs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -89,6 +92,18 @@ class CitizenDeathTest {
     }
 
     @Test
+    void aBodyRespawnedBeforeTheDeathRunsGoesWithTheCitizen() {
+        BodyId corpse = c.citizens().bodyOf(1).orElseThrow();
+        t.bodies.bodies.get(corpse).alive = false; // the plugin untracks the corpse at once
+        BodyId fresh = t.bodies.existing(1, 1, new Vec3(1.5, 64, 1.5));
+        c.citizens().onBodyLoaded(fresh, 1); // a respawn check ran before the death reached the core
+
+        CitizenDeath.die(c, 1, WHERE, FALL);
+
+        assertFalse(t.bodies.bodies.get(fresh).alive, "no body of no citizen is left standing");
+    }
+
+    @Test
     void itsInventoryAndArmourFallWhereItDied() {
         ItemAmount apples = new ItemAmount(new ItemKey("Food_Apple"), 4);
         ItemAmount helmet = new ItemAmount(new ItemKey("Armor_Iron_Head"), 1, 7);
@@ -110,6 +125,45 @@ class CitizenDeathTest {
 
         assertFalse(workers.workers().contains(1));
         assertEquals(List.of(2), house.module(LivingModule.class).orElseThrow().residents());
+    }
+
+    @Test
+    void aHomelessDeathIsMournedByNoHomelessCitizen() {
+        CitizenData joe = citizen(4, "Joe");
+
+        CitizenDeath.die(c, 3, WHERE, FALL);
+
+        assertTrue(joe.mourning().deceased().isEmpty(), "MC doesLiveWith: both homes set and equal");
+        assertTrue(bob.mourning().deceased().isEmpty());
+    }
+
+    @Test
+    void aJobWithoutItsHutIsLetGoToo() {
+        bob.setJob(TestJobs.TYPE.factory().apply(bob));
+
+        CitizenDeath.die(c, 1, WHERE, FALL);
+
+        assertTrue(bob.job().isEmpty(), "MC die: job.onRemoval");
+    }
+
+    @Test
+    void officersAndColonyManagersAreToldButNotPlainFriends() {
+        UUID officer = UUID.randomUUID();
+        UUID friend = UUID.randomUUID();
+        c.permissions().addPlayer(officer, "O", Permissions.OFFICER);
+        c.permissions().addPlayer(friend, "F", Permissions.FRIEND);
+
+        CitizenDeath.die(c, 1, WHERE, FALL);
+        assertEquals(List.of(OWNER, officer), told(), "RECEIVE_MESSAGES: the owner and the officers");
+
+        t.notifier.sent.clear();
+        c.permissions().setRankType(Permissions.FRIEND, RankType.COLONY_MANAGER);
+        CitizenDeath.die(c, 2, WHERE, FALL);
+        assertTrue(told().contains(friend), "MC getImportantMessageEntityPlayers: the colony managers too");
+    }
+
+    private List<UUID> told() {
+        return t.notifier.sent.stream().map(FakeNotifier.Sent::player).toList();
     }
 
     @Test

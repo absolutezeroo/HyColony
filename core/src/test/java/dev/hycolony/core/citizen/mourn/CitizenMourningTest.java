@@ -93,6 +93,22 @@ class CitizenMourningTest {
         assertTrue(t.bodies.moves.isEmpty());
     }
 
+    @Test
+    void aStareEndsOneTimeInTwoHundredAndItDecidesAgain() {
+        long[] rolls = {Long.MIN_VALUE, 0L}; // nextBoolean true (stare), then nextInt(200) 0 (end); 0 after
+        int[] next = {0};
+        t.random = () -> (RandomGenerator) () -> next[0] < rolls.length ? rolls[next[0]++] : 0L;
+        BodyId body = t.bodies.existing(1, 1, new Vec3(5.5, 64, 5.5));
+        t.bodies.existing(1, 2, new Vec3(7.5, 64, 5.5));
+        CitizenAI ai = mourner(body);
+
+        tick(ai, 80);
+
+        assertTrue(
+                t.bodies.looks.contains(new Vec3(5.5, 54, 5.5)),
+                "MC stare ended, then decide: it looks down: " + t.bodies.looks);
+    }
+
     private CitizenAI mourner(BodyId body) {
         Colony c = colony();
         CitizenData d = new CitizenData(1);

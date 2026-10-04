@@ -7,15 +7,19 @@ import com.google.gson.JsonParser;
 import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.death.CitizenDeath;
+import dev.hycolony.core.citizen.death.DeathCause;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +47,18 @@ class CourierAssignmentModuleTest {
 
     private static List<Integer> couriers(Building warehouse) {
         return warehouse.module(CourierAssignmentModule.class).orElseThrow().couriers();
+    }
+
+    @Test
+    void aDeadCourierLeavesItsWarehouse() {
+        Building w = warehouse(new BlockPos(10, 64, 10), 1);
+        courier(1);
+        colony.buildings().onColonyTick(colony);
+        assertEquals(List.of(1), couriers(w));
+
+        CitizenDeath.die(colony, 1, new Vec3(10, 64, 10), new DeathCause("Fall", Optional.empty()));
+
+        assertEquals(List.of(), couriers(w), "MC CitizenManager.removeCivilian: removeCitizen on every module");
     }
 
     @Test

@@ -5,9 +5,8 @@ import dev.hycolony.api.ColonyWorld;
 import java.util.Optional;
 
 /**
- * When a watch has lost its citizen for good (spec 2026-09-30, § 6.1): HyColony no longer knows it, its colony
- * deleted (HyColony keeps a dead citizen, whose body comes back). A watch of another world's citizen is kept: its
- * operator may come back.
+ * When a watch has lost its citizen for good (spec 2026-09-30, § 6.1): HyColony no longer knows it, dead or its colony
+ * deleted. A watch of another world's citizen is kept: its operator may come back.
  */
 public final class WatchLoss {
     private WatchLoss() {}

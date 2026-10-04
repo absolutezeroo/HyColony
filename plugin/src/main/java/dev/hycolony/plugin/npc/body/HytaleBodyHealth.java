@@ -4,7 +4,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.body.BodyHealth;
 import java.util.Optional;
@@ -13,8 +12,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
- * BodyHealth over the citizen NPCs' Health stat ({@link BodyVitals}), walking speed ({@link BodySpeeds}) and the
- * hostile NPCs near them ({@link BodyThreats}). Never
+ * BodyHealth over the citizen NPCs' Health stat ({@link BodyVitals}) and walking speed ({@link BodySpeeds}). Never
  * throws (CLAUDE.md § 4): a failed call answers 0 or false, logged as a WARNING the first time, then FINE. World
  * thread only.
  */
@@ -25,27 +23,15 @@ public final class HytaleBodyHealth implements BodyHealth {
     private final Function<BodyId, Optional<Ref<EntityStore>>> entities;
     private final BodyVitals vitals;
     private final BodySpeeds speeds;
-    private final BodyThreats threats;
     private boolean warned;
 
     /** {@code entities} finds a body's loaded entity; {@code speeds} is the one the bodies' job speeds go through. */
     public HytaleBodyHealth(
-            World world,
-            Function<BodyId, Optional<Ref<EntityStore>>> entities,
-            BodyVitals vitals,
-            BodySpeeds speeds,
-            BodyThreats threats) {
+            World world, Function<BodyId, Optional<Ref<EntityStore>>> entities, BodyVitals vitals, BodySpeeds speeds) {
         this.world = world;
         this.entities = entities;
         this.vitals = vitals;
         this.speeds = speeds;
-        this.threats = threats;
-    }
-
-    /** Through {@link BodyThreats}. */
-    @Override
-    public Optional<Vec3> nearestThreat(BodyId body, double range) {
-        return read("nearestThreat", body, ref -> threats.nearest(ref, range), Optional.<Vec3>empty());
     }
 
     @Override

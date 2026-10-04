@@ -29,6 +29,12 @@ public interface CitizenBodies {
 
     Optional<Vec3> position(BodyId body);
 
+    /**
+     * Where the nearest living hostile creature stands in the body's bounding box inflated by {@code range} blocks
+     * horizontally and 3 vertically (MC EntityAICitizenAvoidEntity.getClosestToAvoid, a Monster); empty without one.
+     */
+    Optional<Vec3> nearestThreat(BodyId body, double range);
+
     void moveTo(BodyId body, Vec3 target);
 
     NavStatus navStatus(BodyId body);

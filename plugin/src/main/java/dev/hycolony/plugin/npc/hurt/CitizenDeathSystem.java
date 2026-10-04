@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathSystems;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.death.CitizenDeath;
 import dev.hycolony.core.citizen.death.DeathCause;
 import dev.hycolony.core.kernel.Vec3;
@@ -57,7 +58,14 @@ public final class CitizenDeathSystem extends DeathSystems.OnDeathSystem {
             }
             Vector3d p = t.getPosition();
             Vec3 at = new Vec3(p.x, p.y, p.z);
-            DeathCause cause = DeathCauses.of(death.getDeathCause(), death.getDeathInfo(), store);
+            DeathCause cause = DeathCauses.of(
+                    death.getDeathCause(),
+                    death.getDeathInfo(),
+                    store,
+                    killer -> rt.manager()
+                            .byId(killer.colonyId())
+                            .flatMap(c -> c.citizens().get(killer.citizenId()))
+                            .map(CitizenData::name));
             rt.bodies().refs().untrack(ref);
             int colonyId = tag.colonyId();
             int citizenId = tag.citizenId();

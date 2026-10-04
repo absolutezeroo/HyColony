@@ -114,7 +114,7 @@ public final class FleeAI {
             start();
             return CitizenState.IDLE;
         }
-        if (health.nearestThreat(body, AVOID_RANGE).isPresent()) {
+        if (bodies.nearestThreat(body, AVOID_RANGE).isPresent()) {
             safeTime = 0;
             moveAway();
             step = Step.RUNNING;
@@ -124,7 +124,7 @@ public final class FleeAI {
 
     /** MC updateMoving: a monster still near keeps it running; once its run is over, it checks again. */
     private @Nullable CitizenState running() {
-        if (health.nearestThreat(body, AVOID_RANGE).isPresent()) {
+        if (bodies.nearestThreat(body, AVOID_RANGE).isPresent()) {
             moveAway();
         }
         if (runTarget == null) {

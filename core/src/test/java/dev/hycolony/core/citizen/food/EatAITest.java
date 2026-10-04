@@ -170,6 +170,28 @@ class EatAITest {
     }
 
     @Test
+    void aMournerStillEats() {
+        citizen.inventory().insert(new ItemAmount(apple, 20), _ -> 64);
+        citizen.mourning().addDeceased("Bob");
+        citizen.mourning().onWakeUp();
+        start(2);
+
+        tickUntil(() -> ai.state() == CitizenState.EATING); // MC calculateNextState: hunger before mourning
+    }
+
+    @Test
+    void aCitizenHitAtTableLeavesItsMealToFlee() {
+        citizen.inventory().set(5, Optional.of(new ItemAmount(apple, 20)));
+        start(2);
+        tickUntil(() -> apple.equals(t.bodies.bodies.get(body).held));
+
+        ai.hit(new Vec3(3, 64, 0), false);
+        tickUntil(() -> ai.state() == CitizenState.FLEE);
+
+        assertNull(t.bodies.bodies.get(body).held, "the meal ended (MC EntityAIEatTask reset)");
+    }
+
+    @Test
     void aCitizenAboveTwoAndAHalfDoesNotGoEating() {
         citizen.inventory().insert(new ItemAmount(apple, 20), _ -> 64);
         start(3);
