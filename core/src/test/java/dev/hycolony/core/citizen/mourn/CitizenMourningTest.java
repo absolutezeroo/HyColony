@@ -95,15 +95,20 @@ class CitizenMourningTest {
         assertTrue(t.bodies.moves.isEmpty());
     }
 
-    /** A mourner at (5.5, 64, 5.5); its boxes meet within 3 + 2 x 0.325 across, 3 + 1.85 up. */
+    /**
+     * A mourner at (5.5, 64, 5.5); the boxes meet within 3 + 2 x 0.325 = 3.65 across and 3 + 1.85 = 4.85 up or down.
+     * Each pair sits between MC's box (0.6 by 1.8: 3.6 and 4.8) and Hytale's, so MC's box fails it.
+     */
     @ParameterizedTest(name = "{3}")
     @CsvSource({
-        "9.0, 64, 5.5, '3.5 along x: within reach', true",
-        "9.2, 64, 5.5, '3.7 along x: the boxes do not meet', false",
-        "5.5, 64, 9.0, '3.5 along z: within reach', true",
-        "5.5, 64, 9.2, '3.7 along z: the boxes do not meet', false",
-        "5.5, 68.5, 5.5, '4.5 up: within reach', true",
-        "5.5, 69.0, 5.5, '5.0 up: past reach', false"
+        "9.12, 64, 5.5, '3.62 along x: within reach', true",
+        "9.18, 64, 5.5, '3.68 along x: past reach', false",
+        "5.5, 64, 9.12, '3.62 along z: within reach', true",
+        "5.5, 64, 9.18, '3.68 along z: past reach', false",
+        "5.5, 68.82, 5.5, '4.82 up: within reach', true",
+        "5.5, 68.9, 5.5, '4.9 up: past reach', false",
+        "5.5, 59.18, 5.5, '4.82 down: within reach', true",
+        "5.5, 59.1, 5.5, '4.9 down: past reach', false"
     })
     void aMournerStaresAtACitizenWhoseBoxMeetsItsOwnInflatedByThree(
             double x, double y, double z, String where, boolean stared) {
