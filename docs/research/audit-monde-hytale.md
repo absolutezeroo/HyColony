@@ -927,6 +927,7 @@ seule gravité).
    (`NPCPlugin.getAttitudeMap()`, `HY/server/npc/NPCPlugin.java:1458`, lue par `AttitudeView` l. 38-39). **[in-game]** pour l'un comme pour l'autre. Clé
    `MobAttackCitizens` (défaut `true`, comme MC) dans la section MC correspondante. Sauvegardes : aucun effet.
 - **Gravité** : incohérent (latent : sans mort portée, une attaque ne changerait rien).
+- **Suivi (2026-10-04)** : un fournisseur d'`AttitudeView` (priorité 150) rend le groupe `HyColony_Hostile` hostile aux citoyens, selon `Combat.MobAttackCitizens` (`CitizenAttitudeSystem`) ; spec `2026-10-04-hycolony-mort-des-citoyens-design.md` § 4.
 
 ### Raids et gardes
 
@@ -975,6 +976,8 @@ l'invulnérabilité du rôle sont des écarts du système, pas des règles du mo
 (attitude des monstres envers les citoyens), C-18 (échelle de vie), C-19 (étouffement) et C-23 (dégâts d'un blocage
 complet).
 
+- **Suivi (2026-10-04)** : la mort est portée (MC `EntityCitizen.die`, `CitizenDeath`), l'invulnérabilité retirée du rôle et des corps sauvés ; spec `2026-10-04-hycolony-mort-des-citoyens-design.md`.
+
 #### C-18. Échelle de vie : 20 points dans un monde à 100
 
 1. **MC** : `BASE_MAX_HEALTH = 20D` (`MC/api/util/constant/CitizenConstants.java:84`, appliqué
@@ -1004,6 +1007,7 @@ complet).
    colonie (`C/app/persistence/CitizenSerializer.java` n'en a pas) ; un corps déjà sauvé par Hytale garde sa valeur
    actuelle et remonte par les soins (**[in-game]**). Pas de migration. Config : aucune (MC n'en a pas).
 - **Gravité** : casse le jeu (latent : un coup tuerait un citoyen dès que la mort sera portée).
+- **Suivi (2026-10-04)** : rôle à `MaxHealth: 100`, soins et seuil `HURT_CITIZEN` ×5 ; spec `2026-10-04-hycolony-mort-des-citoyens-design.md` § 2.
 
 #### C-19. Étouffement et noyade
 
@@ -1022,6 +1026,7 @@ complet).
    qui annule `Suffocation` et téléporte le corps hors du bloc (port `CitizenBodies.teleport`), avec la source MC
    `EntityCitizen.handleInWallDamage`. Laisser la noyade à Hytale, comme MC. Sauvegardes et config : aucun effet.
 - **Gravité** : casse le jeu (latent : un citoyen emmuré mourrait en quelques secondes).
+- **Suivi (2026-10-04)** : `Suffocation` annulée, citoyen réveillé et téléporté hors du bloc (`CitizenWallFilter`, MC `handleInWallDamage`) ; la noyade reste celle de Hytale.
 
 #### C-20. Blessure : causes ignorées et soin bloqué après un coup
 
@@ -1050,6 +1055,7 @@ complet).
    mémoire n'est pas sauvée). Config : aucune (MC n'en a pas).
 - **Gravité** : cosmétique (latent) : tant que les citoyens sont invulnérables, aucun coup ne les touche ; ensuite, seul
   le temps avant la reprise des soins change (5 s ou 15 s), sans état bloqué ni mort de plus.
+- **Suivi (2026-10-04)** : mémoire de l'attaquant de 300 ticks dans le cœur (`HurtMemory`), écart du monde marqué.
 
 #### C-23. Dégâts d'un blocage complet
 
@@ -1072,6 +1078,7 @@ complet).
    (« ours take none » parce que le corps est invulnérable, C-17). Sauvegardes : aucun effet. Config : aucune (MC code
    le taux en dur).
 - **Gravité** : cosmétique (latent, avec C-17).
+- **Suivi (2026-10-04)** : 20 % de la vie maximale sous `Crush` à chaque blocage complet (téléportation ou abandon loin du but), `CitizenWalkReports`.
 
 #### C-21. Immunité au feu
 
