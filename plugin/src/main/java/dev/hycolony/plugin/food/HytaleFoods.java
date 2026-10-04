@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.food;
 
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -22,14 +23,14 @@ import org.jspecify.annotations.Nullable;
  */
 public final class HytaleFoods implements FoodCatalog {
     private final FoodIds ids;
-    private final Set<ItemKey> excluded;
+    private final JobTags tags;
     private @Nullable FoodTable table;
     private @Nullable CookingBenches benches;
 
-    /** The foods of {@code ids}' category and the food files, none of {@code excluded} (MC excluded_food tag). */
-    public HytaleFoods(FoodIds ids, Set<ItemKey> excluded) {
+    /** The foods of {@code ids}' category and the food files, under {@code tags}' excluded_food and poisonousfood. */
+    public HytaleFoods(FoodIds ids, JobTags tags) {
         this.ids = ids;
-        this.excluded = Set.copyOf(excluded);
+        this.tags = tags;
     }
 
     @Override
@@ -54,7 +55,7 @@ public final class HytaleFoods implements FoodCatalog {
     private FoodTable table() {
         FoodTable t = table;
         if (t == null) {
-            t = FoodTable.load(ids, excluded);
+            t = FoodTable.load(ids, tags);
             table = t;
         }
         return t;

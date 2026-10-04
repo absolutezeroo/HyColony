@@ -14,11 +14,11 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 /**
- * CookingCatalog over Hytale's assets: a station is a block whose bench cooks a food, the fuels are what the stations'
- * fuel slots burn ({@link CookingBenches}); the defaults are the id-map's; a dish's raw item comes from the cooking
- * recipes ({@link HytaleFoods}). Read on first use, cached; never throws: a failure to read the benches answers no
- * station (logged SEVERE by {@link CookingBenches}), one to read a block type answers "no station" (one WARNING, then
- * FINE).
+ * CookingCatalog over Hytale's assets: a station is a block whose bench burns fuel and cooks a food, the fuels are what
+ * the stations' fuel slots burn ({@link CookingBenches}); the defaults are the id-map's; a dish's raw item comes from
+ * the cooking recipes ({@link HytaleFoods}). Read on first use, cached; never throws: a failure to read the benches
+ * answers no station (logged SEVERE by {@link CookingBenches}), one to read a block type answers "no station" (one
+ * WARNING, then FINE).
  */
 public final class HytaleCookingCatalog implements CookingCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -33,7 +33,7 @@ public final class HytaleCookingCatalog implements CookingCatalog {
         this.foods = foods;
     }
 
-    /** A block whose bench is a processing bench that cooks a food ({@link CookingBenches}). */
+    /** A block whose bench is a processing bench that burns fuel and cooks a food ({@link CookingBenches}). */
     @Override
     public boolean isStation(BlockKey block) {
         return stations.computeIfAbsent(block, k -> {

@@ -473,6 +473,7 @@ Hors groupe B, renvoyés aux autres groupes : paliers des houes (`id-map.json:18
 3. **Hytale** : les équivalents existent : `Ingredient_Stick`, `Ingredient_Leather_Light` (et autres cuirs), `Ingredient_Bar_Iron` (et autres lingots), `Ingredient_Fibre` (`zip:Server/Item/Items/Ingredient/…`), les viandes du ResourceType `Meats`, `Food_Fish_Raw`, `Plant_Crop_Wheat_Item`, `Plant_Crop_Potato_Item`, les pierres et troncs (ResourceTypes `Rock`, `Wood_Trunk`, utilisés par les recettes des huttes).
 4. **Verdict** : à adapter.
 5. **Proposition** : remplir `reduceable` avec la liste Hytale correspondante, objet par objet (`RecipeImprovement` exige que chaque objet d'un ResourceType soit listé). Aucune sauvegarde touchée (les recettes améliorées naissent en jeu). `crafting.json` est une ressource du plugin, pas `config.json`.
+6. **Mise à jour du 2026-10-04** : les listes `reduceable` ont quitté `crafting.json` (spec `2026-10-04-hycolony-nourriture-ouverte-design.md` § 6). Elles s'écrivent désormais en fichiers `plugin/src/main/resources/Server/HyColony/JobTags/*.json` (`{"Tag": "reduceable_ingredient", "Values": [...]}`), où `res:<ResourceType>` développe un ResourceType en tous ses objets (ce qui répond à l'exigence de `RecipeImprovement`) et `#<tag>` inclut un autre tag. Le marqueur de l'écart est posé sur `CraftingRules.isReduceable`. L'entrée reste à faire.
 - **Gravité** : incohérent (une mécanique de MC portée ne sert jamais).
 
 #### B-13. Les recettes des objets de MC (huttes, outil de construction, champ)

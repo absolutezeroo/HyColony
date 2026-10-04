@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * One {@code Server/HyColony/Foods/<item id>.json} file (spec 2026-10-04 § 5.1): what eating that item gives a citizen
- * (MC FoodProperties nutrition, IMinecoloniesFoodItem tier, {@code poisonous_food} tag). A HyColony asset type that
+ * (MC FoodProperties nutrition, IMinecoloniesFoodItem tier, {@code poisonousfood} tag). A HyColony asset type that
  * every pack may add to; a pack loaded later replaces a file of the same name.
  */
 public final class FoodValueAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, FoodValueAsset>> {

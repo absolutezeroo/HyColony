@@ -38,7 +38,7 @@ final class WorldPorts {
         HytaleBlockCatalog blockCatalog = new HytaleBlockCatalog(hutBlockIds);
         // Assets, loaded only now (crafting.json was read at setup): the job tags, read once for both their uses.
         JobTags tags = HytaleJobTags.load();
-        HytaleFoods foods = new HytaleFoods(ids.food(), tags.get(JobTags.EXCLUDED_FOOD));
+        HytaleFoods foods = new HytaleFoods(ids.food(), tags);
         HytaleBlockTraits placement = new HytaleBlockTraits(ids.construction());
         return new GamePorts(
                 catalog,

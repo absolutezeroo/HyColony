@@ -22,7 +22,7 @@ Critères de réussite : un plat d'un mod tiers, sans aucun fichier HyColony, no
 
 - **Aliments.** MC lit la nourriture de l'objet de Minecraft (`FoodProperties` : nutrition, saturation) et son palier (`IMinecoloniesFoodItem.getTier`, `MC/api/items/IMinecoloniesFoodItem.java:12`). Tout objet d'un autre mod qui a des `FoodProperties` nourrit un citoyen (`FoodUtils.EDIBLE`).
 - **Tags de métier.** Ce qu'un artisan peut apprendre suit des tags d'objets que les packs de données complètent : `<artisan>_product`, `<artisan>_product_excluded`, `<artisan>_ingredient`, `<artisan>_ingredient_excluded`, et `reduceable_ingredient` / `reduceable_product_excluded` pour l'amélioration (`sources/minecolonies/src/datagen/generated/minecolonies/data/minecolonies/tags/items/`). Le nom `<artisan>` est une constante du module de fabrication (`MC/api/util/constant/TagConstants.java:58-72`), pas l'id du métier : le chef (`chef`) lit `cook_*` (`BuildingKitchen.java:133`), le planteur lit `plantation_*`. Un tag de Minecraft s'additionne entre packs et peut inclure un autre tag (`#cook_product` dans `baker_product_excluded`, `DefaultItemTagsProvider.java:211-214`). La règle : un produit exclu est refusé, un produit inclus est accepté, sinon la règle par défaut du module décide (`CraftingUtils.getProductValidatorBasedOnTags`, `isRecipeCompatibleBasedOnTags`). Le tag `excluded_food` retire un objet des aliments (`ItemStackUtils.java:151`).
-- **Bancs d'une hutte.** `registerBlockPosition` n'est appelé que par la pose d'un plan (`MC/core/entity/ai/workers/util/BuildingStructureHandler.java:199`, `MC/api/util/CreativeBuildingStructureHandler.java:127`) ; `EventHandler.onBlockBreak` (`MC/core/event/EventHandler.java:551`) ne traite que les générateurs de monstres. Un banc posé à la main n'est jamais enregistré, un banc cassé est oublié quand l'IA le trouve absent. HyColony fait de même pour les bancs de fabrication (`RegisteredBlocks`, `removeWorkstation`). Seule exception, déjà là : un poste de cuisson posé par un joueur dans l'emprise d'une salle à manger s'y enregistre (`FurnaceUserModule.java:17-21`, écart de SP4b) ; avec ce sous-projet, il vaut pour tout poste de cuisson (§ 7).
+- **Bancs d'une hutte.** `registerBlockPosition` n'est appelé que par la pose d'un plan (`MC/core/entity/ai/workers/util/BuildingStructureHandler.java:199`, `MC/api/util/CreativeBuildingStructureHandler.java:127`) ; `EventHandler.onBlockBreak` (`MC/core/event/EventHandler.java:551`) ne traite que les générateurs de monstres. Un banc posé à la main n'est jamais enregistré, un banc cassé est oublié quand l'IA le trouve absent. HyColony fait de même pour les bancs de fabrication (`RegisteredBlocks`, `removeWorkstation`). Seule exception, déjà là : un poste de cuisson posé par un joueur dans l'emprise d'une salle à manger s'y enregistre (`core/src/main/java/dev/hycolony/core/crafting/furnace/FurnaceUserModule.java:17-21`, écart de SP4b ; chez MC, `FurnaceUserModule.onBlockPlacedInBuilding`, `MC/core/colony/buildings/modules/FurnaceUserModule.java:133-140`, n'est appelé que par `registerBlockPosition`, `MC/core/colony/buildings/AbstractBuilding.java:1415-1419`) ; avec ce sous-projet, il vaut pour tout poste de cuisson (§ 7).
 
 ## 4. Hytale (pre.5, vérifié)
 
@@ -62,7 +62,8 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 - **Palier 0** pour tous (revu après la relecture de fidélité) : chez MC, l'aliment d'un autre mod n'est jamais un plat de MC (`FoodUtils.getFoodTier`, `FoodUtils.java:124-137` : palier 0, ou 1 si nutrition ≥ 12 et saturation ≥ 0,8, saturation non portée) et ne reçoit pas le bonus ×2. Un mod qui veut un plat donne son palier dans un fichier.
 - `Poisonous` : faux. Hytale n'a pas de marque « toxique » (ses champignons toxiques appliquent un effet `Poison` quand on les mange) ; nos champignons et ceux d'un mod se marquent par un fichier.
 - Un fichier hors bornes est écarté : son objet prend alors la valeur de sa qualité, comme un aliment sans fichier, et le selftest le liste.
-- MC `excluded_food` : un objet du tag `excluded_food` (§ 6) n'est jamais un aliment, avec ou sans fichier.
+- MC `excluded_food` : un objet du tag `excluded_food` (§ 6) n'est jamais un aliment, avec ou sans fichier. HyColony ne livre aucun fichier de ce tag : les 9 objets de MC (`DefaultItemTagsProvider.java:151-160` : pomme dorée enchantée, pomme de terre empoisonnée, chair putréfiée, œil d'araignée…) n'ont pas d'équivalent Hytale à exclure (le fruit empoisonné de Hytale n'empoisonne pas, aucun objet pourri : `docs/research/sp4b-hytale-food.md` l. 89 et 210).
+- MC `poisonousfood` (`TagConstants.java:53`) : un objet de ce tag (§ 6) est toxique, comme un fichier `"Poisonous": true`. Écart marqué dans `FoodTable` : chez MC, seul le tag marque un aliment toxique ; nos fichiers gardent leur champ `Poisonous`, celui de l'ancienne table.
 - Écart : `Deviation from MC (Hytale world): MC reads an item's FoodProperties nutrition → a Hytale food without a HyColony file takes the median nutrition of our table's foods of its Quality.`
 - Les noms de qualité et la catégorie sont des ids d'assets Hytale : ils vivent dans l'id-map (§ 7), le cœur ne connaît que les trois rangs et leurs valeurs.
 
@@ -89,10 +90,10 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 { "Tag": "farmer_product", "Values": ["Plant_Seeds_Wheat", "res:Meats"] }
 ```
 
-- `Tag` : nom d'un tag de MC, `<artisan>_product`, `<artisan>_product_excluded`, `reduceable_ingredient`, `reduceable_product_excluded` ou `excluded_food`. `<artisan>` est le nom de MC du module de fabrication (`TagConstants.CRAFTING_*`), une constante du type de hutte (`CraftingModule.crafter`, `FarmerHut.CRAFTER` = `farmer`) : le futur chef lira `cook_*`, comme chez MC.
+- `Tag` : nom d'un tag de MC, `<artisan>_product`, `<artisan>_product_excluded`, `reduceable_ingredient`, `reduceable_product_excluded`, `excluded_food` ou `poisonousfood`. `<artisan>` est le nom de MC du module de fabrication (`TagConstants.CRAFTING_*`), une constante du type de hutte (`CraftingModule.crafter`, `FarmerHut.CRAFTER` = `farmer`) : le futur chef lira `cook_*`, comme chez MC.
 - `Values` : ids d'objets, `res:<type de ressource>` (tous les objets de ce type ; `res:` est la convention de HyColony pour le `ResourceTypeId` d'une recette) ou `#<tag>` (les objets d'un autre tag, comme MC ; des tags qui s'incluent l'un l'autre s'arrêtent à la boucle).
 - **Tous les fichiers d'un même `Tag` s'additionnent**, comme les tags de MC : le nom du fichier ne sert qu'à l'unicité (un mod nomme les siens `MonMod_Chef_Product.json`). Un fichier qui porte le nom d'un des nôtres le remplace (règle des assets) : c'est le moyen de retirer une de nos valeurs.
-- Un `Tag` inconnu, une valeur inconnue des assets : ignorés, journalisés une fois.
+- Un `Tag` inconnu, une valeur inconnue des assets, un `#tag` inconnu ou qu'aucun fichier ne nomme : ignorés, journalisés une fois. Le chargeur de tags de Minecraft n'étant pas dans `sources/`, cette lecture tolérante (CLAUDE.md § 5) est un écart marqué dans `JobTags.merge`.
 - Les tags `_ingredient` / `_ingredient_excluded` de MC ne sont pas lus : HyColony ne les a jamais portés (SP3b-1), écart marqué dans `CraftingRules.allows` ; un fichier de ce tag est écarté comme tag inconnu. Ils rejoindront ce type d'asset le jour où ils le seront.
 - Les listes `reduceable_*` de MC (une trentaine d'objets) ne sont pas encore traduites en objets Hytale : c'est l'entrée B-12 de l'audit du monde (`docs/research/audit-monde-hytale.md`, domaine « Artisanat et bancs »), qui pourra maintenant les écrire en fichiers `JobTags` avec `res:`.
 
@@ -105,7 +106,7 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 ### 6.3 Le cœur
 
 - `crafting/recipe/JobTags` (record) : `Map<String, Set<ItemKey>>`, tag → objets ; `merge` fusionne les fichiers par tag puis ajoute les tags inclus ; `products(crafter)`, `excludedProducts(crafter)`, `get(tag)`.
-- `CraftingRules` reçoit `JobTags` au lieu de lire ces listes dans le JSON ; `allows(jobId, crafter, recipe)` garde l'ordre de MC : exclu → refusé, inclus → accepté, sinon `allow` du métier. `isReduceable` et `isExcludedFromReduction` lisent les tags. `CraftingModule` porte le nom de son artisan, que `RecipeCompatibility` passe à `allows`.
+- `CraftingRules` reçoit `JobTags` au lieu de lire ces listes dans le JSON ; `allows(jobId, crafter, recipe)` garde l'ordre de MC : exclu → refusé, inclus → accepté (même pour un métier absent de `crafting.json`, comme chez MC où les tags passent avant le `orElse(false)`), sinon `allow` du métier. `isReduceable` et `isExcludedFromReduction` lisent les tags. `CraftingModule` porte le nom de son artisan, que `RecipeCompatibility` passe à `allows`.
 - L'adaptateur `plugin/crafting/HytaleJobTags` lit le magasin `JobTags`, développe les `res:` par le catalogue d'objets, sépare les `#tag` et passe les fichiers au cœur (`JobTags.merge`). `WorldPorts` le lit une fois par monde, pour les règles de fabrication et pour `excluded_food` (`HytaleFoods`). `crafting.json` est lu au `setup()`, avant le chargement des assets ; les tags sont donc ajoutés à la création des ports d'un monde, assets chargés (`CraftingRules.withTags`, dans `WorldPorts`).
 
 ## 7. Partie 3 : les postes de cuisson
@@ -116,7 +117,7 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 - `food.cookingBench` quitte l'id-map ; `HytaleCookingCatalog` et `HytaleFoods` perdent leur banc fixe.
 - Le port `CookingCatalog` ne change pas. Les combustibles par défaut (`food.defaultFuels`) restent ceux de l'id-map.
 - Écart : `Deviation from MC (Hytale world): MC FurnaceUserModule.java:136 takes any FurnaceBlock → a processing bench with a fuel slot that cooks a food (Bench_Campfire.json Fuel)`, dans `CookingBenches`. La règle de SP4b (« le feu de camp ») devient « tout banc qui brûle et cuit un aliment ».
-- Un poste posé par un joueur dans l'emprise d'une salle à manger s'y enregistre, comme le feu de camp depuis SP4b (`FurnaceUserModule.java:17-21`, écart de SP4b) : cela vaut maintenant pour tout poste de cuisson.
+- Un poste posé par un joueur dans l'emprise d'une salle à manger s'y enregistre, comme le feu de camp depuis SP4b (`core/src/main/java/dev/hycolony/core/crafting/furnace/FurnaceUserModule.java:17-21`, écart de SP4b) : cela vaut maintenant pour tout poste de cuisson.
 - `tools/food/generate.py` applique la même règle (bancs avec `BlockType.Bench.Fuel`) et lit aussi les recettes autonomes de `Server/Item/Recipes/`.
 
 ## 8. Garde-fou : § 7 de CLAUDE.md
@@ -135,6 +136,9 @@ L'agent `ui-lang-checker` (qui vérifie la règle des id-maps) et la skill `hyta
 | Valeurs de nos aliments : fichiers de HyColony, Hytale n'ayant ni faim ni valeur nutritive | `Deviation from MC (Hytale world)` dans `HytaleFoods` |
 | Tags de MC lus dans des assets Hytale au lieu des tags d'objets de Minecraft | `Deviation from MC (Hytale world)` dans `HytaleJobTags` et `JobTags` |
 | Tags d'ingrédients de MC non lus | `Deviation from MC` dans `CraftingRules.allows` |
+| Boucle ou tag manquant dans les inclusions : lecture tolérante | `Deviation from MC` dans `JobTags.merge` |
+| « Toxique » aussi par le champ `Poisonous` d'un fichier d'aliment, en plus du tag `poisonousfood` | `Deviation from MC (Hytale world)` dans `FoodTable` |
+| Listes `reduceable_*` de MC non encore traduites (audit B-12) | `Deviation from MC (Hytale world)` dans `CraftingRules.isReduceable` |
 | Poste de cuisson : banc `Processing` qui brûle et cuit un aliment, au lieu du four de MC (§ 7) | `Deviation from MC (Hytale world)` dans `CookingBenches` |
 
 ## 10. Architecture
