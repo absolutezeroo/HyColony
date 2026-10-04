@@ -117,7 +117,7 @@ class SleepHandlerTest {
         Building home = counted(new BlockPos(40, 64, 0));
         d.setHomeBuilding(home.position());
         CitizenAI ai = new CitizenAI(c, d, body); // its body appearing wakes it once (MC initEntityValues)
-        handler.trySleep(BED);
+        assertTrue(handler.trySleep(BED));
         int before = home.module(WakeCounter.class).orElseThrow().wakeUps;
 
         ai.hit(null, true);

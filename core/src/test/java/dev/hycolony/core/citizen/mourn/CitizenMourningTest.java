@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.random.RandomGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /** MC CitizenMournHandler, CitizenManager.onWakeUp and EntityAIMournCitizen. */
 class CitizenMourningTest {
@@ -93,22 +95,25 @@ class CitizenMourningTest {
         assertTrue(t.bodies.moves.isEmpty());
     }
 
-    @Test
-    void aMournerStaresAsFarAsTwoCitizenBoxesInflatedByThreeMeet() {
-        assertTrue(staredAt(new Vec3(9.0, 64, 5.5)), "3.5 across: within 3 + 2 x 0.325");
-        assertTrue(staredAt(new Vec3(5.5, 68.5, 5.5)), "4.5 up: within 3 + 1.85");
-        assertFalse(staredAt(new Vec3(9.2, 64, 5.5)), "3.7 across: the boxes do not meet");
-    }
-
-    /** Whether a mourner at (5.5, 64, 5.5) stares at a citizen standing at {@code other}. */
-    private boolean staredAt(Vec3 other) {
+    /** A mourner at (5.5, 64, 5.5); its boxes meet within 3 + 2 x 0.325 across, 3 + 1.85 up. */
+    @ParameterizedTest(name = "{3}")
+    @CsvSource({
+        "9.0, 64, 5.5, '3.5 along x: within reach', true",
+        "9.2, 64, 5.5, '3.7 along x: the boxes do not meet', false",
+        "5.5, 64, 9.0, '3.5 along z: within reach', true",
+        "5.5, 64, 9.2, '3.7 along z: the boxes do not meet', false",
+        "5.5, 68.5, 5.5, '4.5 up: within reach', true",
+        "5.5, 69.0, 5.5, '5.0 up: past reach', false"
+    })
+    void aMournerStaresAtACitizenWhoseBoxMeetsItsOwnInflatedByThree(
+            double x, double y, double z, String where, boolean stared) {
         t.random = () -> (RandomGenerator) () -> Long.MIN_VALUE; // nextBoolean true; nextInt(200) never 0
-        t.bodies.bodies.clear();
-        t.bodies.looks.clear();
         BodyId body = t.bodies.existing(1, 1, new Vec3(5.5, 64, 5.5));
-        t.bodies.existing(1, 2, other);
+        t.bodies.existing(1, 2, new Vec3(x, y, z));
+
         tick(mourner(body), 60);
-        return t.bodies.looks.contains(new Vec3(other.x(), other.y() + MournAI.EYE_HEIGHT, other.z()));
+
+        assertEquals(stared, t.bodies.looks.contains(new Vec3(x, y + MournAI.EYE_HEIGHT, z)), where);
     }
 
     @Test
