@@ -15,9 +15,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen body's health (its Health stat, sp4b-hytale-food § 5.b) and when it was last hurt. Our role has MaxHealth
- * 20, MC's scale. Hytale regenerates an NPC's health by itself (Health.json, +5 % every 0.5 s after 15 s unhurt);
- * that is switched off at each read (the healing reads every body every 100 ticks), as MC citizens heal from their
- * saturation only [in-game]. World thread only.
+ * 100, Hytale's scale (CitizenData.MAX_HEALTH). Hytale regenerates an NPC's health by itself (Health.json, +5 %
+ * every 0.5 s after 15 s unhurt); that is switched off at each read (the healing reads every body every 100 ticks), as
+ * MC citizens heal from their saturation only [in-game]. World thread only.
  */
 public final class BodyVitals {
     /** MC LivingEntity.getLastHurtByMob: an attacker is remembered for 100 ticks (the core's, 20 per second). */

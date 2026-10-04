@@ -25,6 +25,12 @@ public final class CitizenData {
     public static final int LEISURE_TICKS = 20 * 60 * 3;
     /** MC MAX_HEALTH of a citizen: 20 points, ten hearts; a Hytale body's share of its maximum is scaled to it. */
     public static final int MC_MAX_HEALTH = 20;
+    /**
+     * A citizen body's maximum health (its role's MaxHealth). Deviation from MC (Hytale world): MC's 20 health points →
+     * Hytale's 100 (Server/Entity/Stats/Health.json); MC's amounts in points are scaled by maximum / {@link
+     * #MC_MAX_HEALTH}.
+     */
+    public static final int MAX_HEALTH = 100;
 
     private final int id;
     private String name = "";

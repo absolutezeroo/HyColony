@@ -53,6 +53,8 @@ public final class HungerTicks {
     /**
      * MC EntityCitizen.updateHealing, every {@link #HEAL_CITIZENS_AFTER} ticks: a hurt citizen nobody hurt lately
      * heals 2 when full, its saturation / 60 / 2 below {@link #LOW_SATURATION}, else 1; one at 0 saturation is slowed.
+     * Deviation from MC (Hytale world): MC's points on its 20 health → the same share of the body's own maximum (100,
+     * {@link CitizenData#MAX_HEALTH}).
      */
     public static void updateHealing(Colony colony) {
         CitizenBodies bodies = colony.context().bodies();
@@ -63,8 +65,9 @@ public final class HungerTicks {
                 continue;
             }
             double saturation = data.saturation();
-            if (health.health(body) < health.maxHealth(body) && !health.recentlyHurt(body)) {
-                health.heal(body, healAmount(saturation));
+            double max = health.maxHealth(body);
+            if (health.health(body) < max && !health.recentlyHurt(body)) {
+                health.heal(body, healAmount(saturation) * max / CitizenData.MC_MAX_HEALTH);
             }
             health.setStarving(body, saturation <= 0);
         }

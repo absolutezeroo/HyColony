@@ -115,7 +115,15 @@ class HungerTicksTest {
         assertEquals(3 / 60.0 / 2, HungerTicks.healAmount(3), EPS);
         fake().health = 10;
         HungerTicks.updateHealing(colony);
-        assertEquals(12, fake().health, EPS);
+        assertEquals(20, fake().health, EPS, "MC's 2 points, times 100 / 20 on Hytale's scale");
+    }
+
+    @Test
+    void healingScalesWithTheBodysOwnMaximum() {
+        fake().maxHealth = 40;
+        fake().health = 10;
+        HungerTicks.updateHealing(colony);
+        assertEquals(14, fake().health, EPS, "2 points times 40 / 20");
     }
 
     @Test

@@ -39,12 +39,12 @@ class TownHallCitizensViewTest {
     }
 
     @Test
-    void theVitalsShowItsBodysHealthElseMcsFullTwenty() {
+    void theVitalsShowItsBodysHealthElseAFullHundred() {
         f.bob.setSaturation(12.7);
         CitizenRow.Vitals bodiless =
                 f.townHallView(f.alice).citizens().getFirst().vitals();
-        assertEquals(20, bodiless.health()); // no body: MC's 20/20
-        assertEquals(20, bodiless.maxHealth());
+        assertEquals(100, bodiless.health()); // no body: MC's full health, on Hytale's scale
+        assertEquals(100, bodiless.maxHealth());
         assertEquals(12, bodiless.saturation());
 
         BodyId body = f.t.bodies.existing(f.colony.id(), f.bob.id(), new Vec3(0, 64, 0));

@@ -36,10 +36,10 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
         public int healthPercent = 100;
         /** What {@link FakeBodies#defensePercent} reports. */
         public int defensePercent;
-        /** Health on MC's scale; {@link FakeBodies#heal} raises it up to {@link #maxHealth}. */
-        public double health = 20;
+        /** Health on Hytale's scale; {@link FakeBodies#heal} raises it up to {@link #maxHealth}. */
+        public double health = 100;
 
-        public double maxHealth = 20;
+        public double maxHealth = 100;
         /** What {@link FakeBodies#recentlyHurt} reports. */
         public boolean recentlyHurt;
         /** Whether it is slowed down by starving. */

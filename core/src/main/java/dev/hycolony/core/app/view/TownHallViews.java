@@ -23,7 +23,7 @@ import java.util.UUID;
 /** Builds the town hall window's view (MC WindowTownHall): the colony, its work orders, citizens and statistics. */
 final class TownHallViews {
     /** Shown without a living body. */
-    private static final int MC_MAX_HEALTH = CitizenData.MC_MAX_HEALTH;
+    private static final int MAX_HEALTH = CitizenData.MAX_HEALTH;
 
     /**
      * MC EventDescriptionManager's kinds: a citizen moving in, a hut built, upgraded, repaired or deconstructed.
@@ -96,11 +96,11 @@ final class TownHallViews {
                 d.id(), d.name(), d.gender(), d.job().map(j -> j.type().id()), status(c, d), skills, vitals(c, d));
     }
 
-    /** MC WindowCitizenPage's labels; a citizen without a living body shows MC's full 20/20. */
+    /** MC WindowCitizenPage's labels; a citizen without a living body shows full health, on Hytale's scale. */
     private CitizenRow.Vitals vitals(Colony c, CitizenData d) {
         Optional<BodyId> body = c.citizens().bodyOf(d.id()).filter(ctx.bodies()::isAlive);
-        int health = body.map(b -> (int) ctx.health().health(b)).orElse(MC_MAX_HEALTH);
-        int max = body.map(b -> (int) ctx.health().maxHealth(b)).orElse(MC_MAX_HEALTH);
+        int health = body.map(b -> (int) ctx.health().health(b)).orElse(MAX_HEALTH);
+        int max = body.map(b -> (int) ctx.health().maxHealth(b)).orElse(MAX_HEALTH);
         return new CitizenRow.Vitals(health, max, (int) d.happiness().happiness(c, d), (int) d.saturation());
     }
 

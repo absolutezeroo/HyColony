@@ -7,10 +7,10 @@ import dev.hycolony.core.kernel.port.BodyId;
  * throws; an unknown body or one not alive in a loaded world answers 0 or false, and a call on it does nothing.
  */
 public interface BodyHealth {
-    /** The body's health, on MC's scale (a citizen has 20). */
+    /** The body's health, on Hytale's scale (a citizen has 100, {@code CitizenData.MAX_HEALTH}). */
     double health(BodyId body);
 
-    /** The body's maximum health (MC getMaxHealth, 20 for a citizen). */
+    /** The body's maximum health (MC getMaxHealth, 100 for a citizen on Hytale's scale). */
     double maxHealth(BodyId body);
 
     /** Heals the body by {@code amount}, up to its maximum (MC LivingEntity.heal). */

@@ -29,7 +29,7 @@
       "MaxSwimTurnAngle": 180
     }
   ],
-  "MaxHealth": 20,
+  "MaxHealth": 100,
   "Invulnerable": true,
   "Instructions": [
     {

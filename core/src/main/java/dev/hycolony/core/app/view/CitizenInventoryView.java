@@ -25,15 +25,15 @@ public record CitizenInventoryView(
         Optional<ItemAmount> offHand) {
 
     /**
-     * The panel of {@code d}: without a living body, MC's full 20/20 (MAX_HEALTH without its entity) and no defense;
-     * health truncated as MC casts its float health.
+     * The panel of {@code d}: without a living body, full health (MC MAX_HEALTH without its entity, on Hytale's scale,
+     * {@link CitizenData#MAX_HEALTH}) and no defense; health truncated as MC casts its float health.
      */
     public static CitizenInventoryView of(Colony c, CitizenData d) {
         Optional<BodyId> body = c.citizens().bodyOf(d.id()).filter(c.context().bodies()::isAlive);
         return new CitizenInventoryView(
                 d.name(),
-                body.map(b -> (int) c.context().health().health(b)).orElse(CitizenData.MC_MAX_HEALTH),
-                body.map(b -> (int) c.context().health().maxHealth(b)).orElse(CitizenData.MC_MAX_HEALTH),
+                body.map(b -> (int) c.context().health().health(b)).orElse(CitizenData.MAX_HEALTH),
+                body.map(b -> (int) c.context().health().maxHealth(b)).orElse(CitizenData.MAX_HEALTH),
                 body.map(c.context().bodies()::defensePercent).orElse(0),
                 (int) d.saturation(),
                 (int) CitizenData.MAX_SATURATION,

@@ -56,8 +56,8 @@ class CitizenInventoryViewTest {
     void withoutABodyItIsWholeAndUnarmoured() {
         CitizenInventoryView v = CitizenInventoryView.of(colony, d);
 
-        assertEquals(CitizenData.MC_MAX_HEALTH, v.health(), "MC: MAX_HEALTH without its entity");
-        assertEquals(CitizenData.MC_MAX_HEALTH, v.maxHealth());
+        assertEquals(100, v.health(), "MC: MAX_HEALTH without its entity, on Hytale's scale");
+        assertEquals(100, v.maxHealth());
         assertEquals(0, v.defensePercent());
     }
 
@@ -71,7 +71,7 @@ class CitizenInventoryViewTest {
 
         CitizenInventoryView v = CitizenInventoryView.of(colony, d);
 
-        assertEquals(CitizenData.MC_MAX_HEALTH, v.health());
+        assertEquals(100, v.health());
         assertEquals(0, v.defensePercent());
     }
 
