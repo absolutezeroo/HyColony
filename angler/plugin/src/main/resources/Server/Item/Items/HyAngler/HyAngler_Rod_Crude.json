@@ -1,0 +1,54 @@
+{
+  "TranslationProperties": { "Name": "hyangler.item.rod_crude.name", "Description": "hyangler.item.rod.description" },
+  "Categories": [ "Items.Tools" ],
+  "Quality": "Common",
+  "MaxStack": 1,
+  "MaxDurability": 200,
+  "Icon": "Icons/Items/HyAngler/Rod_Crude.png",
+  "Model": "Items/HyAngler/Rod_Crude.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Crude.png",
+  "PlayerAnimationsId": "HyAngler_Rod",
+  "Tags": { "Type": [ "Tool" ] },
+  "Recipe": {
+    "TimeSeconds": 0,
+    "KnowledgeRequired": false,
+    "Input": [
+      { "ItemId": "Ingredient_Stick", "Quantity": 3 },
+      { "ItemId": "Ingredient_Fibre", "Quantity": 4 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Fieldcraft", "Type": "Crafting", "Categories": [ "Tools" ] },
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ] }
+    ]
+  },
+  "Interactions": {
+    "Primary": {
+      "Interactions": [
+        {
+          "Type": "Simple",
+          "RunTime": 3,
+          "Effects": { "ItemAnimationId": "Reel", "ClearAnimationOnFinish": true }
+        }
+      ]
+    },
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "HyAngler_Cast",
+          "Reel": true,
+          "Next": {
+            "Type": "Charging",
+            "AllowIndefiniteHold": true,
+            "DisplayProgress": true,
+            "Effects": { "ItemAnimationId": "CastCharging", "ClearAnimationOnFinish": true },
+            "Next": {
+              "0": { "Type": "HyAngler_Cast", "Power": 0.5, "Effects": { "ItemAnimationId": "Cast" } },
+              "0.5": { "Type": "HyAngler_Cast", "Power": 0.75, "Effects": { "ItemAnimationId": "Cast" } },
+              "1": { "Type": "HyAngler_Cast", "Power": 1.0, "Effects": { "ItemAnimationId": "Cast" } }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

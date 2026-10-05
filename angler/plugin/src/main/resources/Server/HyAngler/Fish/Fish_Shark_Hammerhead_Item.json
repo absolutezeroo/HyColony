@@ -1,0 +1,1 @@
+{"Weight":1,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone0_Warm"]},{"Type":"OpenWater"},{"Type":"Time","From":18,"To":6}]}}

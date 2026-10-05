@@ -1,0 +1,19 @@
+{
+  "Parent": "HyAngler_Rod_Crude",
+  "TranslationProperties": { "Name": "hyangler.item.rod_onyxium.name", "Description": "hyangler.item.rod.description" },
+  "Quality": "Epic",
+  "MaxDurability": 450,
+  "Icon": "Icons/Items/HyAngler/Rod_Onyxium.png",
+  "Model": "Items/HyAngler/Rod_Onyxium.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Onyxium.png",
+  "Recipe": {
+    "TimeSeconds": 5,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Onyxium", "Quantity": 7 },
+      { "ItemId": "Ingredient_Leather_Storm", "Quantity": 3 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ], "RequiredTierLevel": 3 }
+    ]
+  }
+}

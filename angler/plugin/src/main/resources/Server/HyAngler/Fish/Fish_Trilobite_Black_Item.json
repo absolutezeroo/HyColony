@@ -1,0 +1,1 @@
+{"Weight":8,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone2_Deserts","Env_Zone2_Oasis"]},{"Type":"Depth","Min":2}]}}

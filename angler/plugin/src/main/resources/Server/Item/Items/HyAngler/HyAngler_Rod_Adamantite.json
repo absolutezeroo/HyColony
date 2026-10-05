@@ -1,0 +1,20 @@
+{
+  "Parent": "HyAngler_Rod_Crude",
+  "TranslationProperties": { "Name": "hyangler.item.rod_adamantite.name", "Description": "hyangler.item.rod.description" },
+  "Quality": "Rare",
+  "MaxDurability": 1000,
+  "Icon": "Icons/Items/HyAngler/Rod_Adamantite.png",
+  "Model": "Items/HyAngler/Rod_Adamantite.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Adamantite.png",
+  "Recipe": {
+    "TimeSeconds": 4.5,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Adamantite", "Quantity": 6 },
+      { "ItemId": "Ingredient_Leather_Heavy", "Quantity": 2 },
+      { "ItemId": "Ingredient_Fabric_Scrap_Cindercloth", "Quantity": 3 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ], "RequiredTierLevel": 3 }
+    ]
+  }
+}

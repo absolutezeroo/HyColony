@@ -1,0 +1,1 @@
+{"Weight":25,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone1_Forests","Env_Zone1_Mountains","Env_Zone1_Autumn","Env_Zone2_Savanna"]},{"Type":"Time","From":19,"To":6},{"Type":"Depth","Min":2}]},"Modifiers":[{"If":{"Type":"Weather","Rain":true},"Multiplier":1.3}]}

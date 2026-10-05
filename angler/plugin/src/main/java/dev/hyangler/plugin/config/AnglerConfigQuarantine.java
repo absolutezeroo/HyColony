@@ -1,0 +1,59 @@
+package dev.hyangler.plugin.config;
+
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.ExtraInfo;
+import com.hypixel.hytale.codec.util.RawJsonReader;
+import com.hypixel.hytale.logger.HytaleLogger;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+
+/**
+ * A copy of HyBlockUI's ConfigQuarantine: HyAngler sees no other mod (spec § 10). Keeps a malformed config file from
+ * aborting the server start. Hytale's {@code Config.load} decodes the file in {@code PluginBase.preLoad}, and its
+ * exception escapes {@code PluginManager}'s join: moving the bad file aside first makes {@code Config.load} fall back
+ * to the codec defaults, which the plugin then writes back at setup.
+ */
+final class AnglerConfigQuarantine {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    private static final DateTimeFormatter STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private static final int READ_BUFFER_CHARS = 8192;
+
+    private AnglerConfigQuarantine() {}
+
+    /**
+     * Decodes {@code file} as {@code Config.load} would; on any failure logs SEVERE, naming {@code modName}, and
+     * renames it {@code <name>.broken-<timestamp>}. A missing file is left alone. Never throws.
+     */
+    static void moveAsideIfUnreadable(String modName, Path file, Codec<?> codec) {
+        if (!Files.exists(file)) {
+            return;
+        }
+        try {
+            decode(file, codec);
+        } catch (IOException | RuntimeException e) {
+            Path broken = file.resolveSibling(file.getFileName() + ".broken-"
+                    + LocalDateTime.now(ZoneId.systemDefault()).format(STAMP));
+            LOG.at(Level.SEVERE).withCause(e).log(
+                    "%s: %s is not valid (%s); moved to %s, starting with defaults", modName, file, e, broken);
+            try {
+                Files.move(file, broken);
+            } catch (IOException | RuntimeException moveFailed) {
+                LOG.at(Level.SEVERE).withCause(moveFailed).log("%s: could not move %s aside", modName, file);
+            }
+        }
+    }
+
+    /** Same steps as {@code RawJsonReader.readSync}, with a fresh ExtraInfo so no thread-local state is left over. */
+    private static void decode(Path file, Codec<?> codec) throws IOException {
+        try (RawJsonReader reader = RawJsonReader.fromPath(file, new char[READ_BUFFER_CHARS])) {
+            ExtraInfo extraInfo = new ExtraInfo();
+            codec.decodeJson(reader, extraInfo);
+            extraInfo.getValidationResults().logOrThrowValidatorExceptions(LOG);
+        }
+    }
+}

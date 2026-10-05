@@ -1,4 +1,11 @@
 # HyAngler (spec 2026-10-04-hyangler-design)
 mod.name = HyAngler
-item.spike_rod.name = Canne d'essai A (bras qui suit le regard)
-item.spike_rod_b.name = Canne d'essai B (dernier morceau long)
+item.rod_crude.name = Canne à pêche rudimentaire
+item.rod_copper.name = Canne à pêche en cuivre
+item.rod_iron.name = Canne à pêche en fer
+item.rod_thorium.name = Canne à pêche en thorium
+item.rod_cobalt.name = Canne à pêche en cobalt
+item.rod_adamantite.name = Canne à pêche en adamantite
+item.rod_mithril.name = Canne à pêche en mithril
+item.rod_onyxium.name = Canne à pêche en onyxium
+item.rod.description = Maintenez pour armer, relâchez pour lancer. Recommencez pour ramener la ligne : si un poisson mord, il est pris.

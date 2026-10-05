@@ -1,0 +1,18 @@
+{
+  "Parent": "HyAngler_Rod_Crude",
+  "TranslationProperties": { "Name": "hyangler.item.rod_copper.name", "Description": "hyangler.item.rod.description" },
+  "Quality": "Common",
+  "MaxDurability": 300,
+  "Icon": "Icons/Items/HyAngler/Rod_Copper.png",
+  "Model": "Items/HyAngler/Rod_Copper.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Copper.png",
+  "Recipe": {
+    "TimeSeconds": 3,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Copper", "Quantity": 2 },
+      { "ResourceTypeId": "Wood_Trunk", "Quantity": 2 },
+      { "ItemId": "Ingredient_Fibre", "Quantity": 4 }
+    ],
+    "BenchRequirement": [ { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ] } ]
+  }
+}

@@ -1,0 +1,1 @@
+{"Weight":15,"Conditions":{"Type":"Environment","Ids":["Env_Zone3_Glacial","Env_Zone3_Shores","Env_Zone0_Cold"]},"Modifiers":[{"If":{"Type":"Weather","Ids":["Zone3_Snow","Zone3_Snow_Heavy","Zone3_Snow_Storm"]},"Multiplier":1.5}]}

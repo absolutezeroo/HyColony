@@ -1,0 +1,20 @@
+{
+  "Parent": "HyAngler_Rod_Crude",
+  "TranslationProperties": { "Name": "hyangler.item.rod_thorium.name", "Description": "hyangler.item.rod.description" },
+  "Quality": "Rare",
+  "MaxDurability": 700,
+  "Icon": "Icons/Items/HyAngler/Rod_Thorium.png",
+  "Model": "Items/HyAngler/Rod_Thorium.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Thorium.png",
+  "Recipe": {
+    "TimeSeconds": 4,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Thorium", "Quantity": 4 },
+      { "ItemId": "Ingredient_Leather_Medium", "Quantity": 1 },
+      { "ItemId": "Ingredient_Fabric_Scrap_Linen", "Quantity": 3 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ], "RequiredTierLevel": 2 }
+    ]
+  }
+}

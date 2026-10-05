@@ -1,0 +1,10 @@
+{
+  "HitBox": {
+    "Max": { "X": 0.075, "Y": 0.075, "Z": 0.075 },
+    "Min": { "X": -0.075, "Y": -0.075, "Z": -0.075 }
+  },
+  "MinScale": 1,
+  "MaxScale": 1,
+  "Model": "Items/HyAngler/Bobber.blockymodel",
+  "Texture": "Items/HyAngler/Bobber.png"
+}

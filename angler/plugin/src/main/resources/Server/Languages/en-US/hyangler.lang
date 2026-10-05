@@ -1,4 +1,11 @@
 # HyAngler (spec 2026-10-04-hyangler-design)
 mod.name = HyAngler
-item.spike_rod.name = Spike rod A (arm follows the look)
-item.spike_rod_b.name = Spike rod B (long last piece)
+item.rod_crude.name = Crude Fishing Rod
+item.rod_copper.name = Copper Fishing Rod
+item.rod_iron.name = Iron Fishing Rod
+item.rod_thorium.name = Thorium Fishing Rod
+item.rod_cobalt.name = Cobalt Fishing Rod
+item.rod_adamantite.name = Adamantite Fishing Rod
+item.rod_mithril.name = Mithril Fishing Rod
+item.rod_onyxium.name = Onyxium Fishing Rod
+item.rod.description = Hold to charge, release to cast. Use again to reel in: when a fish bites, it is caught.

@@ -1,0 +1,1 @@
+{"Weight":8,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone2_Savanna","Env_Zone0_Warm"]},{"Type":"Time","From":19,"To":6}]}}

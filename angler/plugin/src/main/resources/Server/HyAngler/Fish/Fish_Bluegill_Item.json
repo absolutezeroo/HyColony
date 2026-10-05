@@ -1,0 +1,1 @@
+{"Weight":40,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone1_Plains","Env_Zone3_Tundra","Env_Zone0_Temperate","Env_Zone0_Warm"]},{"Type":"Time","From":7,"To":19}]}}

@@ -1,0 +1,1 @@
+{"Weight":10,"Conditions":{"Type":"Environment","Ids":["Env_Zone2_Shores"]},"Modifiers":[{"If":{"Type":"Time","From":20,"To":6},"Multiplier":1.5}]}

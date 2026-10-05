@@ -1,0 +1,20 @@
+{
+  "Parent": "HyAngler_Rod_Crude",
+  "TranslationProperties": { "Name": "hyangler.item.rod_cobalt.name", "Description": "hyangler.item.rod.description" },
+  "Quality": "Rare",
+  "MaxDurability": 700,
+  "Icon": "Icons/Items/HyAngler/Rod_Cobalt.png",
+  "Model": "Items/HyAngler/Rod_Cobalt.blockymodel",
+  "Texture": "Items/HyAngler/Rod_Cobalt.png",
+  "Recipe": {
+    "TimeSeconds": 4,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Cobalt", "Quantity": 5 },
+      { "ItemId": "Ingredient_Leather_Heavy", "Quantity": 1 },
+      { "ItemId": "Ingredient_Fabric_Scrap_Shadoweave", "Quantity": 3 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Tools" ], "RequiredTierLevel": 2 }
+    ]
+  }
+}

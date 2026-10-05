@@ -1,1 +1,17 @@
-{}
+{
+  "saltEnvironments": [
+    "Env_Zone0", "Env_Zone0_Cold", "Env_Zone0_Temperate", "Env_Zone0_Warm",
+    "Env_Zone1_Shores", "Env_Zone2_Shores", "Env_Zone3_Shores", "Env_Zone4_Shores"
+  ],
+  "zones": ["Zone0", "Zone1", "Zone2", "Zone3", "Zone4"],
+  "precipitation": ["Rain", "Rain_Light", "Rain_Heavy", "Snow_Light", "Snow_Heavy", "Snow_Storm"],
+  "waterSurface": [
+    "Plant_Flower_Water_Blue", "Plant_Flower_Water_Duckweed", "Plant_Flower_Water_Green",
+    "Plant_Flower_Water_Purple", "Plant_Flower_Water_Red", "Plant_Flower_Water_White"
+  ],
+  "beam": "HyAngler_Line",
+  "animations": "HyAngler_Rod",
+  "bobber": "HyAngler_Bobber",
+  "particles": { "bubbles": "Bubbles_Breathing", "splash": "Water_Splash", "tease": "Water_Splash_Soft" },
+  "sounds": { "bite": "SFX_Water_MoveIn", "reel": "SFX_Tool_Hookshot_Reel" }
+}

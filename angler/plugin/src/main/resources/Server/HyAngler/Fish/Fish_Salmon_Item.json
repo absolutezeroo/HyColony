@@ -1,0 +1,1 @@
+{"Weight":20,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone3_Forests","Env_Zone3_Mountains","Env_Zone0_Cold"]},{"Type":"Time","From":4,"To":22}]},"Modifiers":[{"If":{"Type":"Time","From":4,"To":8},"Multiplier":1.5},{"If":{"Type":"Weather","Rain":true},"Multiplier":1.3}]}

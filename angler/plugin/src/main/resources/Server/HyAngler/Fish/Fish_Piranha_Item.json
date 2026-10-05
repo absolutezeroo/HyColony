@@ -1,0 +1,1 @@
+{"Weight":15,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone1_Swamps","Env_Zone1_Azure"]},{"Type":"Time","From":8,"To":18}]}}

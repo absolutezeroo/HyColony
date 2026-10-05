@@ -1,0 +1,1 @@
+{"Weight":2,"Conditions":{"Type":"Environment","Ids":["Env_Zone2_Shores"]},"Modifiers":[{"If":{"Type":"Weather","Ids":["Zone2_Thunder_Storm"]},"Multiplier":2.0}]}

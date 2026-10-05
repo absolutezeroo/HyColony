@@ -1,0 +1,1 @@
+{"Weight":10,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone1_Shores","Env_Zone2_Shores"]},{"Type":"Time","From":18,"To":6},{"Type":"Depth","Min":2}]}}

@@ -1,0 +1,1 @@
+{"Weight":12,"Conditions":{"All":[{"Type":"Environment","Ids":["Env_Zone1_Swamps","Env_Zone1_Azure","Env_Zone3_Tundra"]},{"Type":"Time","From":6,"To":21}]},"Modifiers":[{"If":{"Type":"Any","Conditions":[{"Type":"Time","From":6,"To":9},{"Type":"Time","From":18,"To":21}]},"Multiplier":1.5}]}
