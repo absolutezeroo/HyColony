@@ -1,4 +1,4 @@
 # HyAngler (spec 2026-10-04-hyangler-design)
 mod.name = HyAngler
-item.spike_rod.name = Spike rod (pinned bobber)
-item.spike_rod_free.name = Spike rod (free physics)
+item.spike_rod.name = Spike rod A (arm follows the look)
+item.spike_rod_b.name = Spike rod B (long last piece)

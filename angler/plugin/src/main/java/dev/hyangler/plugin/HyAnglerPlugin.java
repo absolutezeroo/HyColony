@@ -3,6 +3,8 @@ package dev.hyangler.plugin;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import dev.hyangler.plugin.spike.SpikeAnimCommand;
+import dev.hyangler.plugin.spike.SpikeBobberRemoval;
 import dev.hyangler.plugin.spike.SpikeBobberSystem;
 import dev.hyangler.plugin.spike.SpikeCastInteraction;
 import dev.hyangler.plugin.spike.SpikeCommand;
@@ -21,6 +23,8 @@ public final class HyAnglerPlugin extends JavaPlugin {
                 .register("HyAngler_SpikeCast", SpikeCastInteraction.class, SpikeCastInteraction.CODEC);
         SpikeBobberSystem.registerComponent(getEntityStoreRegistry());
         getEntityStoreRegistry().registerSystem(new SpikeBobberSystem());
+        getEntityStoreRegistry().registerSystem(new SpikeBobberRemoval());
         getCommandRegistry().registerCommand(new SpikeCommand());
+        getCommandRegistry().registerCommand(new SpikeAnimCommand());
     }
 }

@@ -1,4 +1,4 @@
 # HyAngler (spec 2026-10-04-hyangler-design)
 mod.name = HyAngler
-item.spike_rod.name = Canne d'essai (bouchon figé)
-item.spike_rod_free.name = Canne d'essai (physique libre)
+item.spike_rod.name = Canne d'essai A (bras qui suit le regard)
+item.spike_rod_b.name = Canne d'essai B (dernier morceau long)

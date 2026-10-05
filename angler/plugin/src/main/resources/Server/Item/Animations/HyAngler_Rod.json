@@ -1,0 +1,79 @@
+{
+  "Parent": "Item",
+  "Animations": {
+    "Idle": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Idle.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/Main_Handed/Item/Idle_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "CastCharging": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/CastCharging.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/CastCharging_FPS.blockyanim",
+      "Speed": 1
+    },
+    "Cast": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Cast.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Cast_FPS.blockyanim",
+      "Speed": 1,
+      "BlendingDuration": 0.05
+    },
+    "Bite": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Bite.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Bite_FPS.blockyanim",
+      "Speed": 1
+    },
+    "Hook": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Hook.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Hook_FPS.blockyanim",
+      "Speed": 1,
+      "BlendingDuration": 0.05
+    },
+    "FightLight": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/FightLight.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/FightLight_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "FightHeavy": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/FightHeavy.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/FightHeavy_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "FightPump": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/FightPump.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/FightPump_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "ReelFight": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/ReelFight.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/ReelFight_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "Reel": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Reel.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Reel_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true
+    },
+    "Escape": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Escape.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Escape_FPS.blockyanim",
+      "Speed": 1
+    },
+    "Snap": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Snap.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Snap_FPS.blockyanim",
+      "Speed": 1,
+      "BlendingDuration": 0
+    },
+    "Catch": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Catch.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Catch_FPS.blockyanim",
+      "Speed": 1
+    }
+  }
+}

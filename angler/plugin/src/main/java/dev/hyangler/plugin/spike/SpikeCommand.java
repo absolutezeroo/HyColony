@@ -22,7 +22,7 @@ public final class SpikeCommand extends AbstractPlayerCommand {
         setPermissionGroups();
     }
 
-    /** Gives the pinned-bobber rod and the free-physics rod; an inventory without room takes nothing (giveItem). */
+    /** Gives rods A (tip pitched with the look) and B (a long last piece); an inventory without room takes nothing. */
     @Override
     protected void execute(
             @Nonnull CommandContext ctx,
@@ -31,6 +31,6 @@ public final class SpikeCommand extends AbstractPlayerCommand {
             @Nonnull PlayerRef player,
             @Nonnull World world) {
         Player.giveItem(new ItemStack("HyAngler_Spike_Rod", 1), ref, store);
-        Player.giveItem(new ItemStack("HyAngler_Spike_Rod_Free", 1), ref, store);
+        Player.giveItem(new ItemStack("HyAngler_Spike_Rod_B", 1), ref, store);
     }
 }

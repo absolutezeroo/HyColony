@@ -342,7 +342,7 @@ if (line != Integer.MIN_VALUE) {
 }
 ```
 
-La cible est un **nœud du modèle de l'entité** (le joueur), pas de l'objet tenu : un nœud `Tip` de la canne n'est pas adressable par `AttachedBeam` (rien ne vise un objet tenu dans `BeamInstance`, `protocol/BeamInstance.java:19-32`). **[in-game]** : départ de la ligne depuis `R-Attachment`.
+La cible est un **nom de nœud** de l'entité, que le client cherche lui-même : `BeamInstance` n'a pas de champ « objet tenu » (`protocol/BeamInstance.java:19-32`), mais rien ne dit si le client cherche le nom parmi les os du joueur seulement ou aussi parmi les nœuds de l'objet tenu, comme le font les animations (§ 7.1). Vu en jeu : la ligne vers `R-Attachment` part de la main (§ 6) ; vers `Rod_Line_Out`, nœud de la canne tenue, elle ne marche pas (§ 7.5). Essai d'un décalage depuis la main : § 7.5. **[in-game]**
 
 ### 5.4 Lancer chargé `Charging` et interaction Java propre
 
@@ -646,7 +646,7 @@ Les bornes (0,1 à 10 ; 8 à 64) sont rappliquées par le cœur, comme `ColonyCo
 2. § 10 : « un bouchon trouvé au chargement d'un chunk est retiré » ne peut pas arriver : un projectile n'est jamais sauvegardé (§ 5.1). En revanche, le déchargement du tronçon retire le bouchon : le lancer doit s'annuler quand sa `Ref` n'est plus valide.
 3. § 5 et § 7.3 : les délais de vanilla sont en ticks de 20/s, le monde tourne à 30/s : un accumulateur (§ 5.2).
 4. § 6 et § 10 (« un fichier invalide est écarté… jamais le serveur ») : vrai pour une règle du cœur (objet inconnu, borne, condition inconnue), faux pour une erreur de type JSON dans un pack zip ou jar, qui arrête le serveur (§ 5.13). Lire les champs à risque en BSON brut, ou l'écrire tel quel dans la spec.
-5. § 7.1 : le nœud `Tip` de la canne ne peut pas porter la ligne ; elle part du nœud `R-Attachment` du joueur (§ 5.3). **[in-game]**
+5. § 7.1 : un nœud de la canne ne peut pas porter la ligne (vu en jeu) ; elle part de l'os `R-Attachment` du joueur, avec un décalage jusqu'au bout de la canne si le client l'applique dans le repère de l'os (§ 5.3, § 7.5). **[in-game]**
 6. § 4 : `WeatherResource` et `BeamComponent` sont des plugins intégrés : déclarer `Hytale:Beam` **et** `Hytale:Weather` dans le manifeste.
 7. § 11 (config) : pas de `ConfigQuarantine` (HyBlockUI) pour HyAngler → copie propre (§ 5.11).
 8. § 6.4 `Zone` : pas de champ de zone ; c'est le tag `ZoneN` de l'environnement (§ 5.6).
@@ -658,7 +658,8 @@ Vu en jeu par l'utilisateur avec les cannes d'essai (`TESTING.md` 401-407, commi
 
 - **Lancer** : le lancer chargé (`Charging` → interaction Java) part une fois la config du projectile munie d'une interaction (§ 5.1, « Specified map is empty » sinon). On peut lancer sans limite : l'essai ne garde aucun lancer en cours (la vraie canne n'en permet qu'un, spec § 7.4).
 - **Flottaison** : un projectile `Standard` de densité 700 **ne flotte pas** ; laissé à la seule physique de Hytale, il reste sous l'eau. Le calcul du § 3.2 ne se vérifie pas en jeu. Seul le bouchon figé (`setState(INACTIVE)` au premier tick dans l'eau, hauteur tenue par notre système) marche : c'est la voie de la spec § 7.2.
-- À noter encore : hauteur du bouchon figé, lisibilité de la corde à 10, 20 et 30 blocs, distances selon la charge, point de départ de la corde, animation au lancer.
+- **Départ de la corde** : vers l'os `R-Attachment`, elle part de la main du joueur. Le bout de la canne s'atteint par un décalage en blocs (§ 7.5).
+- À noter encore : hauteur du bouchon figé, lisibilité de la ligne à 10, 20 et 30 blocs, distances selon la charge.
 
 ## 7. Animations de la canne et du pêcheur (2026-10-04)
 
@@ -732,59 +733,65 @@ Entrées de charge de l'arc court (`zip:Server/Item/Animations/Shortbow.json`, s
 
 ### 7.4 Moment par moment
 
-| Moment | Mécanisme | Entrée de notre jeu `HyAngler_Rod` |
+Le jeu de l'essai (`angler/plugin/.../Server/Item/Animations/HyAngler_Rod.json`, fait dans Blockbench sur le joueur de Hytale avec la canne en attachement, approuvé par l'utilisateur le 2026-10-04). Un vrai lancer ne plie pas la canne à l'armé : le bras la ramène droite derrière l'épaule, et seul le fouet avant fait traîner le scion un instant ; elle plie sous un poisson.
+
+| Moment | Mécanisme | Entrée de `HyAngler_Rod` |
 |---|---|---|
-| Tenue, repos | locomotion héritée de `Item` ; `Idle` redéfini si la canne doit osciller | `Idle` (`Looping: true`) |
-| Charge | `Effects.ItemAnimationId` du `Charging`, avec `ClearAnimationOnFinish` | `CastCharging` (`holdLastKeyframe` vrai : canne armée en arrière, scion plié) |
-| Lancer (fouet) | `Effects.ItemAnimationId` des interactions de palier de `Next` (nos `HyAngler_Cast`) | `Cast` (fouet avant, scion qui suit en retard) |
+| Tenue, repos | redéfinit `Idle` du jeu `Item` (même pose, scion qui oscille) | `Idle` (boucle de 2 s) |
+| Armer | `Effects.ItemAnimationId` du `Charging`, avec `ClearAnimationOnFinish` | `CastCharging` (`holdLastKeyframe` : canne droite à « une heure », buste tourné) |
+| Lancer (fouet) | `Effects.ItemAnimationId` des paliers de `Next` | `Cast` (0,4 s, dont un fouet de 0,15 s ; le scion traîne en arrière, dépasse, se calme) |
 | Attente | aucune animation : retour à `Idle` | — |
-| Touche (frémissement) | Java : `playAnimation(ref, Action, "HyAngler_Rod", "Bite", true, acc)` | `Bite` (courte, sans boucle) |
-| Ferrage | `Effects.ItemAnimationId` de l'interaction de ferrage, ou Java | `Hook` |
-| Combat (canne pliée) | Java ; une entrée par intensité, renvoyée quand l'intensité change | `FightLight`, `FightHeavy` (`Looping: true`) |
-| Moulinet | Java, ou l'interaction de ramener | `Reel` (`Looping: true` ; `Reel_Crank` tourne de 120° toutes les 5 images, scion plié) |
-| Prise | Java, puis `stopAnimation(ref, Action, true, acc)` | `Catch` |
-| Casse | Java | `Snap` (`shapeVisible` faux sur la ligne du modèle, canne qui se détend) |
+| Touche | Java : `playAnimation(ref, Action, "HyAngler_Rod", "Bite", true, acc)` | `Bite` (trois frémissements) |
+| Ferrage | interaction de ferrage, ou Java | `Hook` (`holdLastKeyframe` : coup sec vers le haut, canne pliée) |
+| Combat | Java ; une entrée par intensité, renvoyée quand elle change | `FightLight`, `FightHeavy` (boucles, secousses du bras) |
+| Pompage | Java | `FightPump` (boucle de 1,5 s : relever pliée, rabaisser en moulinant) |
+| Moulinet | Java, ou l'interaction de ramener | `ReelFight` (pliée), `Reel` (droite) ; `Rod_Reel_Crank` tourne de 120° toutes les 10 images |
+| Fin | Java, puis `stopAnimation(ref, Action, true, acc)` | `Catch` (canne levée), `Escape` (la tension lâche, la canne vibre), `Snap` (recul sec ; l'animation ne cache rien, c'est le serveur qui retire la ligne : le `BeamComponent` du bouchon et, pour une ligne qui pend, ses porteurs) |
 
-Chaque entrée a `ThirdPerson`, `ThirdPersonMoving` et `FirstPerson`, qui plient tous les nœuds de la canne. Esquisse (nos fichiers, non testés) :
-
-```json
-{
-  "Parent": "Item",
-  "Animations": {
-    "CastCharging": {
-      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging.blockyanim",
-      "ThirdPersonMoving": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging_Moving.blockyanim",
-      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging_FPS.blockyanim",
-      "Speed": 1
-    },
-    "Reel": {
-      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Reel.blockyanim",
-      "ThirdPersonMoving": "Characters/Animations/Items/HyAngler/Rod/Reel_Moving.blockyanim",
-      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Reel_FPS.blockyanim",
-      "Speed": 1,
-      "Looping": true,
-      "BlendingDuration": 0.1
-    }
-  }
-}
-```
+Le moulinet et les anneaux sont **au-dessus** de la canne tenue (pose de `Item`, montage de canne de lancer) : un angle négatif en x des sections plie le scion vers l'eau (combat), un angle positif vers le haut (le scion qui traîne pendant le fouet avant). Chaque entrée a un `ThirdPerson` (corps et canne) et un `FirstPerson` `_FPS` (canne seule, ce que le client fait du bras en 1re personne est **[in-game]**) ; `Idle` garde en 1re personne `Main_Handed/Item/Idle_FPS.blockyanim`.
 
 ### 7.5 Modèle de la canne
 
-- Racine `R-Attachment` avec `isPiece`, comme `zip:Common/Items/Tools/Fishing_Rod/FishingRod.blockymodel` et `zip:Common/Items/Tools/Hookshot/Scrap.blockymodel`. Puis une **chaîne imbriquée** de nœuds charnières, chacun à la base de son segment, sa forme décalée le long de l'axe : `Rod_Butt › Rod_Mid › Rod_Upper › Rod_Tip`, sur le modèle de `Handle › Bow-Top › Bow-Top2 › Rope-Top`. Le pli progressif vient de petites rotations de même sens à chaque niveau (l'arc : ±10° par segment).
-- `Reel_Crank`, enfant de la poignée, pivot sur l'axe du moulinet, pour la rotation `linear` du § 7.1. `Rod_Line` (quad ou boîte fine depuis le scion) : `shapeVisible` pour la cacher au lancer ou à la casse, `shapeStretch` pour l'allonger (comme `Rope-Top`). La vraie ligne (`Beam`) part de `R-Attachment` et pas du scion (§ 5.14, point 5) : le scion plié ne la déplace pas.
+- Racine `R-Attachment` avec `isPiece`, comme `zip:Common/Items/Tools/Fishing_Rod/FishingRod.blockymodel` et `zip:Common/Items/Tools/Hookshot/Scrap.blockymodel`. Puis une **chaîne imbriquée** de nœuds charnières, chacun à la base de son segment, sa forme décalée le long de l'axe et allant jusqu'à la charnière suivante : `Rod_Blank › Rod_Mid › Rod_Upper › Rod_Tip` (à 16, 49, 83 et 100 unités ; `REPO/tools/angler/rods.py`), sur le modèle de `Handle › Bow-Top › Bow-Top2 › Rope-Top`. Le pli progressif vient de petites rotations de même sens à chaque niveau (l'arc : ±10° par segment).
+- `Rod_Reel_Crank`, enfant du support `Rod`, pivot sur l'axe du moulinet (x), pour la rotation `linear` du § 7.1.
+- Ligne au bout de la canne. `AttachedBeam` ne prend qu'un nom de nœud et un décalage `Vector3fc` (`HY/builtin/beam/AttachedBeam.java:12-21`, surcharge à 7 arguments l. 44-55) ; le serveur ne vérifie pas le nom, le client le cherche.
+  - **Vu en jeu (2026-10-04)** : une ligne visant `Rod_Line_Out`, nœud vide de la canne au centre de l'anneau du scion, ne s'affiche pas du tout : le client ne trouve pas le nom parmi les nœuds de l'objet tenu, et un nom introuvable ne dessine aucune ligne (alors que les animations les trouvent, § 7.1). Le nœud est retiré du modèle.
+  - Essai suivant : l'os `R-Attachment` avec un décalage jusqu'au bout de la canne. Mesuré dans Blockbench sur le joueur avec la canne en attachement (`worldToLocal` de l'os) : le centre de l'anneau du scion est à (0 ; 113,5 ; 5,5) unités dans le repère de l'os, la position (-3, 14, -6) de la racine `isPiece` ne compte pas. Le joueur fait 121 unités pour une boîte de 1,85 bloc (`zip:Server/Models/Human/Player.json`), soit 65,4 unités par bloc, arrondi à 64 (le double des 32 unités par bloc qu'emploie le serveur pour un blockymodel, `BLOCK_SCALE = 0.03125F`, `HY/server/core/asset/type/model/BlockyModelBoundsParser.java:19`) : (0 ; 1,773 ; 0,086) bloc. La canne A essayait les blocs, la canne B les unités. **Vu en jeu (2026-10-04)** : la canne A marche, la ligne part du bout de la canne et suit le bras. Le client compte donc le décalage **en blocs, dans le repère de l'os** visé. Il ne suit pas le pli des sections. Par moments, la ligne paraît « voler » : un faisceau est droit et raide, sans le ventre d'une vraie ligne.
+  - Essai de ligne qui pend (`REPO/angler/plugin/.../spike/SpikeLine.java`), première version : la ligne devenait une chaîne de faisceaux à travers 4 entités porteuses sans modèle (9 puis 18 depuis, et le scion pris de `SpikeTipTracks`, puce suivante), bâties comme `BeamComponent.spawn` (`HY/builtin/beam/BeamComponent.java:41-56` : `NetworkId`, `TransformComponent`, `BeamComponent`, `UUIDComponent`, composant non sérialisé, `DespawnComponent`), mais par le `CommandBuffer` de l'interaction (`EntityStore.REGISTRY.newHolder()`, `buffer.addEntity`, comme `ProjectileModule.java:203-240`). Chaînage : bouchon → porteur 1 → … → porteur 4 → os `R-Attachment` du pêcheur décalé jusqu'au scion, donc le dernier segment se termine exactement au bout de la canne, côté client. À chaque tick, le serveur pose les porteurs sur une parabole sous la corde bouchon → scion estimé (pieds + 1,9 bloc de haut, 1,4 en avant selon le lacet, 0,3 à droite : le serveur ne connaît pas les os) : flèche de 12 % de la corde au repos, 1,5 % tendue, 2,5 blocs au plus. **Vu en jeu (2026-10-04)** : la ligne qui pend fait plus vrai que la droite ; en 5 morceaux les angles se voient, passée à 10.
+  - **Vu en jeu (2026-10-04)** : pendant une animation de l'emplacement `Action` (armé, combat), le bout de la ligne semble rester là où était le scion **au repos**. Hypothèse de l'époque, réfutée plus bas : le client placerait un faisceau sur l'os tel que le pose la locomotion, sans l'animation d'action. Contournement essayé : le serveur suit l'animation. Pour chaque entrée de `HyAngler_Rod`, Blockbench a mesuré la position du centre de l'anneau du scion toutes les 6 images (joueur + canne en attachement, `Animator.preview`), exprimée dans le repère de l'os `R-Attachment` de la pose `Idle` (`matrixWorld` inverse), en blocs à 64 unités : `Idle` redonne exactement (0 ; 1,773 ; 0,086). La table générée (`REPO/angler/plugin/.../spike/SpikeTipTracks.java`) donne aussi le bout depuis les pieds, dans le repère du modèle (+x à gauche du pêcheur, +z devant), qui remplace l'estimation fixe pour poser les porteurs. À chaque tick, le serveur interpole l'échantillon de l'entrée jouée et, si le décalage a bougé de plus de 0,01 bloc, change sur place le faisceau du dernier segment (`BeamComponent.set` lève `networkOutdated`, et `BeamSystems.Tracker` renvoie un `BeamsUpdate` à ceux qui voient l'entité, `HY/builtin/beam/BeamSystems.java:127-146`). Notre système est déclaré `BEFORE BeamSystems.Tracker` et `BEFORE TransformSystems.EntityTrackerUpdate` : le faisceau changé et les porteurs déplacés partent au même tick (`Tracker` et `EntityTrackerUpdate` sont dans un groupe sans ordre entre eux, `EntityTrackerSystems.java:71`). Limites : seules les entrées jouées par le serveur sont suivies (pas celles des interactions, sauf `Cast` au lancer) ; la marche n'est pas comptée.
+  - **Vu en jeu (2026-10-04)** : en 10 morceaux, la ligne qui pend est « clairement mieux » ; au lancer, en sautant et en tournant, elle reste collée au scion. Mais pendant les animations, le bout reste au repos malgré `BeamComponent.set` (aucune erreur au journal). Hypothèses : le client n'applique pas un `BeamsUpdate` qui change un faisceau existant, ou le changement ne part pas. Essai suivant (`REPO/angler/plugin/.../spike/SpikeTipFollow.java`) : canne A, même `set` et une ligne au journal à chaque nouvelle pose ; canne B, le `BeamComponent` retiré un tick (`tryRemoveComponent`, `BeamSystems.Remove`) puis remis neuf le suivant (`putComponent`).
+  - **Vu en jeu (2026-10-04)** : le journal montre un changement envoyé pour chaque pose (Cast, Bite, Hook, FightLight, FightHeavy, FightPump, ReelFight, Catch, Escape). Avec `set`, le bout **suit, mais pas au bon endroit** : le client applique donc un `BeamsUpdate` qui change un faisceau existant. Retirer puis remettre le faisceau le fait **clignoter** : écarté. L'impression du début (« le bout reste au repos ») était donc sans doute un suivi du bras sans le pli. Essai suivant : les deux cannes en `set` ; canne A, le décalage dans le repère de l'os `R-Attachment` posé par `Idle` ; canne B, dans le repère de l'os posé par l'entrée jouée (seul le pli des sections y compte : (0 ; 1,424 ; 0,781) au combat lourd, contre (0 ; 1,773 ; 0,086) au repos).
+  - **Vu en jeu (2026-10-04)** : la canne B (os posé par l'entrée jouée) est « 100 fois mieux », avec quelques écarts restants. **Le client place un faisceau sur l'os tel que l'anime aussi l'emplacement `Action`** ; il ne manque que le pli des sections de la canne, qui ne sont pas des os du joueur. Le décalage à suivre est donc celui du scion dans le repère de l'os animé, le seul qui change pendant une entrée.
+  - Écarts restants vus en jeu : le bout arrive **en retard** et **saute au début et à la fin** d'une entrée. Causes probables : le changement part après l'animation qu'il suit (réseau), et le client fond une entrée dans la suivante (`BlendingDuration`, 0,2 s par défaut, 0,05 s pour `Cast` et `Hook`, 0 pour `Snap`) quand la table sautait d'un coup ; les échantillons toutes les 6 images lissaient mal le fouet. Essai suivant : la table remesurée toutes les 3 images, réduite à l'os animé et au bout depuis les pieds ; canne B, l'échantillon pris `LEAD_TICKS` = 2 ticks en avance et fondu depuis la pose précédente sur la durée de fondu de l'entrée, puis vers `Idle` quand une entrée sans boucle est finie. Canne A sans ces corrections, pour comparer.
+  - **Vu en jeu (2026-10-04)** : la canne B est « mieux, clairement ». Reste : au ferrage (`Hook`), la ligne fait des angles droits. Cause probable : la flèche passait d'un coup de 12 % à 1,5 % de la corde au tick du ferrage, et chaque porteur sautait jusqu'à 2,5 blocs, lissé par le client à son propre rythme. Essai suivant : la flèche s'approche de sa cible de 25 % de l'écart à chaque tick (95 % en 11 ticks, environ un tiers de seconde), et 18 porteurs (19 segments, demandé par l'utilisateur). **[in-game]**
+  - **Vu en jeu (2026-10-04)** : en 1re personne, la ligne fait un grand V renversé. Le client accroche le faisceau sur l'os de la canne qu'il dessine en 1re personne (devant la caméra), alors que le serveur pose les porteurs sur la canne vue de l'extérieur, plus haute et plus en avant. Le serveur ne sait pas quelle vue le joueur a (aucun paquet du client ne la signale), mais peut l'imposer : `SetServerCamera(ClientCameraView.ThirdPerson, isLocked = true, null)` (`HY/protocol/packets/camera/SetServerCamera.java:25-43` ; le spectateur bloque sa vue l. 287 de `SpectatorSystems.java` et la rend, vue imposée par le mode de jeu d'abord, dans `applyFreeCamera`, l. 291-305) et la rendre par `SetServerCamera(Custom, false, null)` (`CameraManager.resetCamera`, `CameraManager.java:39-41`). Décision de l'utilisateur : la pêche se joue en 3e personne. L'essai bloque la vue au lancer et la rend à la fin de la prise (`REPO/angler/plugin/.../spike/SpikeCamera.java`). Repli si un jour la 1re personne revient : cacher une entité à un seul joueur est possible, comme le fait `EntityTrackerSystems.HideFromPlayer` (l. 745-822, retrait de `EntityViewer.visible` après `CollectVisible`).
+  - Essai de 100 morceaux (canne A, `Points` 99) contre 19 (canne B) : chaque porteur est une entité déplacée à chaque tick, envoyée à chaque joueur qui la voit.
+  - **Vu en jeu (2026-10-04)** : 100 morceaux ne se distinguent pas de 19. En 3e personne, un petit V reste près du scion : le dernier segment va du vrai bout (côté client) au dernier porteur, posé sur le bout estimé par le serveur ; à 19 segments égaux, ce segment ne fait que 1/19 de la ligne et replie l'écart d'estimation en angle fermé. Essai suivant (`Reach`) : les porteurs couvrent 80 % de la corde (canne A) au lieu de 18/19 (canne B), et le dernier segment, droit jusqu'au scion, étale l'écart sur 1/5 de la ligne.
+  - **Vu en jeu (2026-10-04)** : tout le reste de la ligne est « parfait », seul le dernier segment monte vers un point nettement **au-dessus** du vrai scion : l'écart est systématique. Cause probable : le jeu `Item` dont hérite `HyAngler_Rod` fait suivre le regard à l'épaule (`zip:Server/Item/Animations/Item.json`, `"Camera": {"Pitch": {"AngleRange": {"Max": 60, "Min": -30}, "TargetNodes": ["Head", "RShoulder"]}}`), alors que les pistes ont été mesurées le regard à l'horizontale ; en regardant l'eau, le bras et la canne descendent. Essai suivant (`REPO/angler/plugin/.../spike/SpikeArmPitch.java`, canne A) : le bout tourne autour du pivot de `R-Shoulder` (en `Idle`, (−0,227 ; 1,353 ; −0,015) bloc depuis les pieds, Blockbench) de l'angle vertical du regard (`HeadRotation`, positif vers le haut, `Transform.getDirection`), borné à [−30°, 60°]. On ignore encore si le client applique tout l'angle à l'épaule ou le partage avec la tête.
+  - **Vu en jeu (2026-10-04)** : la canne A est « nickel ». **Le client tourne l'épaule de tout l'angle vertical du regard**, borné à [−30°, 60°]. Le pivot (−14,5 ; 86,59 ; −0,94) unités compte les décalages de forme des parents (`Belly` +8, `Chest` +11, règle de `models.placed`), d'où 1,353 bloc ; sans eux, on trouverait 1,056. Reste à vérifier : que −30° soit bien la borne vers le bas (regarder franchement à ses pieds). **[in-game]**
+
+Bilan de l'essai de ligne, la recette à reprendre pour la vraie canne :
+1. Notre propre `Beam` (`HyAngler_Line`, fil clair de 2 px).
+2. Une ligne qui pend : 18 porteurs sans modèle (19 segments), posés à chaque tick sur une parabole sous la corde bouchon → scion ; flèche de 12 % de la corde au repos et 1,5 % tendue (au plus 2,5 blocs), qui va vers sa cible de 25 % de l'écart par tick.
+3. Le dernier segment s'accroche à l'os `R-Attachment` du pêcheur, le décalage étant en blocs dans le repère de l'os tel que l'animation le pose. Le serveur n'y ajoute que le pli des sections de la canne (`SpikeTipTracks`), change le faisceau sur place, 2 ticks en avance, et passe d'une pose à l'autre sur la `BlendingDuration` de l'entrée.
+4. Le scion vu du serveur, qui sert à poser les porteurs, vient des mêmes pistes (bout depuis les pieds, dans le repère du modèle), tourné autour de l'épaule selon le regard.
+5. La pêche se joue en 3e personne, vue bloquée au lancer et rendue au retrait du bouchon, quelle qu'en soit la cause.
+- Notre ligne : asset `Beam` à nous, `Server/Entity/Beams/HyAngler_Line.json` (magasin `Entity/Beams`, `HY/builtin/beam/BeamPlugin.java:45` ; une seule clé, `TexturePath`, validée sous `Beams/` ou `Trails/`, `HY/builtin/beam/asset/Beam.java:21-31`, `CommonAssetValidator.java:21`). Texture `Common/Beams/HyAngler/Line.png`, 32 × 32 comme `zip:Common/Trails/Rope.png` (la corde y occupe une bande de 6 px au milieu) : un fil clair de 2 px aux bords adoucis. Un faisceau est droit : il ne pend pas.
 - **Noms uniques**, préfixés, sans nom d'os du joueur (`Characters/Player.blockymodel`) ni nom visé par les animations de vanilla (`Handle`, `Chain`, `Cape1`…) : le jeu `Item` hérité anime par exemple `Food-Part`, et les jeux d'arme animent `Handle`. Le `FishingRod.blockymodel` de vanilla (référencé par aucun objet) répète `Handle` quatre fois et `Node` trois fois : tel quel, on ne peut pas viser ses segments un par un. Pas de nœud animé nommé `<nom>--C<n>` : chaque segment est son propre groupe dans Blockbench (`hytale-models.md` § 3).
 - 255 nœuds au plus (`hytale-models.md` § 2). Aucune autre limite de nœuds animés trouvée.
-- Blockbench (plugin Hytale) : l'animation se fait dans un projet de **personnage** (`hytale_character`) avec la canne chargée en attachement ; l'export `.blockyanim` contient alors les os du joueur et les nœuds de la canne. D'après la description publique du plugin : outils `hytale_set_attachment_piece`, `hytale_list_attachments`, `hytale_create_visibility_keyframe`, `hytale_set_animation_loop` (`loop`, `hold`, `once`), 60 images par seconde (<https://skills.cat/skills/jasonjgardner/blockbench-mcp-project/blockbench-hytale>). Pas essayé ici. Le format est assez simple pour être écrit par script (`REPO/tools/blockpaint/motion.py` écrit déjà des pistes d'orientation `linear`).
+- Blockbench (plugin Hytale) : l'animation se fait dans un projet de **personnage** (`hytale_character`) avec la canne chargée en attachement ; l'export `.blockyanim` contient alors les os du joueur et les nœuds de la canne. Fait ainsi pour l'essai : `Characters/Player.blockymodel` et `Player_Greyscale.png` ouverts, la canne importée par l'action `import_as_hytale_attachment` (son `R-Attachment` `isPiece` se pose sur l'os `R-Attachment` de `R-Hand`), les animations vanilla `Main_Handed/Item/Idle` et `Attacks/Throw` chargées par `load_animation_file` pour partir des vraies poses (`Idle` : `R-Arm` −15°, `R-Forearm` −30°, `R-Hand` z 5°, position de `R-Attachment` (2, −2, 2,1)).
 
 ### 7.6 Limites et essais en jeu
 
 - Limite dure : l'objet n'a qu'une animation propre, fixe. Toutes les poses qui changent passent par le jeu d'animations du **porteur** : posée au sol ou dans un présentoir, la canne ne plie pas (seule `Item.Animation` y joue).
 - Limite : un `PlayAnimation` n'est pas rejoué pour un joueur qui arrive à portée (§ 7.3).
 - Repli si les nœuds de la canne ne bougent pas chez le PNJ : `ItemAppearanceConditions` sur une stat `Shared` à nous (par exemple `HyAngler_RodBend` à 0, 1 ou 2) qui remplace le modèle par une canne pliée modelée d'avance (sans animation, § 7.2). La ligne (`Beam`, § 5.3) fait le reste du travail visible.
-- **[in-game]** :
+- Blockbench (plugin Hytale, projet `hytale_character`) : une animation faite sur les groupes de la canne s'exporte par l'action `export_blockyanim` (fonction interne `compileAnimationFile`) au format du § 7.1. Une rotation de −4° en x y devient `{"x": -0.0349, "w": 0.99939}`, 120° en x `{"x": 0.86603, "w": 0.5}`, clés `smooth` (Catmull-Rom) ou `linear`, 60 images par seconde, `hold` → `holdLastKeyframe: true` : le sens des angles de Blockbench est celui du fichier. Les animations de l'essai (`angler/plugin/.../Common/Characters/Animations/Items/HyAngler/Rod/`) sont ces exports ; leurs `_FPS` en sont des copies réduites aux nœuds `Rod_*`.
+- **[in-game]** (`docs/TESTING.md` 408-413) :
   1. un `.blockyanim` de joueur livré par un pack sous `Common/Characters/` se charge et joue (les `.blockyanim` de blocs et d'objets de nos packs jouent déjà) ;
-  2. les nœuds de notre canne plient en 3e et en 1re personne avec une entrée à nous ;
+  2. les nœuds de notre canne bougent en 3e et en 1re personne avec une entrée à nous, et ce que deviennent le bras et le corps en 1re personne avec un `_FPS` qui ne les anime pas ;
   3. `playAnimation(…, Action, "HyAngler_Rod", …, true, …)` se voit sur le joueur lui-même, en 1re personne, et une entrée `Looping` tourne jusqu'à `stopAnimation` ou jusqu'à l'entrée suivante ;
-  4. la même chose sur un citoyen (PNJ `PlayerTestModel_V`) qui tient la canne ;
-  5. ce que fait le client quand `Item.Animation` et une animation du joueur visent le même nœud.
+  4. `Effects.ItemAnimationId` posé sur notre propre type d'interaction (`HyAngler_SpikeCast`) joue `Cast` ;
+  5. ~~la ligne depuis `R-Attachment` décalée jusqu'au bout de la canne~~ : vu, le décalage (0 ; 1,773 ; 0,086), en blocs et dans le repère de l'os, tombe au bout de la canne et suit le bras (§ 7.5) ;
+  6. la même chose sur un citoyen (PNJ `PlayerTestModel_V`) qui tient la canne ;
+  7. ce que fait le client quand `Item.Animation` et une animation du joueur visent le même nœud.

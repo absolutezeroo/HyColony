@@ -1,9 +1,11 @@
 package dev.hyangler.plugin.spike;
 
+import com.hypixel.hytale.builtin.beam.BeamSystems;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.dependency.Dependency;
@@ -14,6 +16,7 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.system.TransformSystems;
+import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.modules.projectile.system.StandardPhysicsTickSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -21,12 +24,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.joml.Vector3d;
 
 /**
- * Throwaway (plan task 2): the spike's bobbers. A free one is left to Hytale's own physics (does a Standard projectile
- * of density 700 float, drift?); a frozen one is pinned where it first touched water and bobbed gently, the plan's
- * way (Cozy Tales' idea, fishing-hytale.md § 1.8). Either is removed after a minute.
+ * Throwaway (plan task 2): the spike's bobbers, pinned where they first touch water and bobbed gently, the plan's way
+ * (Cozy Tales' idea, fishing-hytale.md § 1.8; left to Hytale's physics they sink, § 6). A floating one plays its
+ * scripted catch (SpikeCatchDemo); each one's line follows the angler's rod tip and, sagging, has its carriers laid
+ * every tick (SpikeLine); any is removed after a minute.
  */
 public final class SpikeBobberSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -37,7 +40,11 @@ public final class SpikeBobberSystem extends EntityTickingSystem<EntityStore> {
 
     private final Set<Dependency<EntityStore>> dependencies = Set.of(
             new SystemDependency<>(Order.AFTER, StandardPhysicsTickSystem.class),
-            new SystemDependency<>(Order.BEFORE, TransformSystems.EntityTrackerUpdate.class));
+            new SystemDependency<>(Order.BEFORE, TransformSystems.EntityTrackerUpdate.class),
+            // the line's beam changes go out the same tick as its carriers' moves
+            new SystemDependency<>(Order.BEFORE, BeamSystems.Tracker.class),
+            // a snapped line's beam removal reaches viewers that still see it (queueRemove throws otherwise)
+            new SystemDependency<>(Order.BEFORE, EntityTrackerSystems.ClearEntityViewers.class));
     private boolean failed;
 
     /** Registers the bobber's component; call once, in setup(), before the system. */
@@ -66,7 +73,11 @@ public final class SpikeBobberSystem extends EntityTickingSystem<EntityStore> {
         return dependencies;
     }
 
-    /** Pins a frozen bobber once it is in water, and removes any bobber past its minute; never throws. */
+    /**
+     * Pins a bobber once it is in water, steps its scripted catch, moves its line onto the rod tip and lays its
+     * carriers (other entities' transforms), removes it past its minute if Hytale's own despawn has not (its line and
+     * camera lock go with it, SpikeBobberRemoval); never throws.
+     */
     @Override
     public void tick(
             float dt,
@@ -82,15 +93,38 @@ public final class SpikeBobberSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
             bobber.ticks++;
-            if (bobber.freeze) {
-                pinOnWater(bobber, physics, transform);
-            }
+            pinOnWater(bobber, physics, transform);
+            Ref<EntityStore> self = chunk.getReferenceTo(index);
             if (bobber.ticks > LIFETIME_TICKS) {
-                buffer.removeEntity(chunk.getReferenceTo(index), RemoveReason.REMOVE);
+                // its line and its angler's camera go with it (SpikeBobberRemoval)
+                buffer.tryRemoveEntity(self, RemoveReason.REMOVE);
+                return;
             }
+            if (bobber.floating) {
+                SpikeCatchDemo.step(bobber, self, buffer);
+            }
+            layLine(bobber, self, transform, buffer);
         } catch (RuntimeException e) { // out of a TickingSystem, an exception would stop the world's thread
             LOG.at(failed ? Level.FINE : Level.SEVERE).withCause(e).log("HyAngler spike: bobber tick failed");
             failed = true;
+        }
+    }
+
+    /**
+     * Samples the rod tip of the angler's pose, moves the line's end onto it, and lays a sagging line's carriers
+     * between the bobber and it, taut while a fish pulls (SpikeCatchDemo).
+     */
+    private static void layLine(
+            SpikeBobber bobber, Ref<EntityStore> self, TransformComponent at, CommandBuffer<EntityStore> buffer) {
+        Ref<EntityStore> angler = bobber.angler;
+        if (angler == null || !angler.isValid()) {
+            return;
+        }
+        SpikeTipFollow.sample(bobber);
+        SpikeTipFollow.follow(bobber, bobber.carriers.isEmpty() ? self : bobber.carriers.getLast(), buffer);
+        TransformComponent anglerAt = buffer.getComponent(angler, TransformComponent.getComponentType());
+        if (!bobber.carriers.isEmpty() && anglerAt != null) {
+            SpikeLine.lay(bobber, at.getPosition(), anglerAt, buffer);
         }
     }
 
@@ -105,9 +139,8 @@ public final class SpikeBobberSystem extends EntityTickingSystem<EntityStore> {
             bobber.surfaceY = transform.getPosition().y;
         }
         if (bobber.floating) {
-            Vector3d p = transform.getPosition(); // the live position: no allocation per tick
-            p.y = bobber.surfaceY + 0.04 * Math.sin(bobber.ticks * 0.15);
-            transform.setPosition(p);
+            // the live position, no allocation per tick: the tracker sends it when it differs from the sent one
+            transform.getPosition().y = bobber.surfaceY + 0.04 * Math.sin(bobber.ticks * 0.15);
         }
     }
 }
