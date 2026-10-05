@@ -60,7 +60,7 @@ HyAngler (aucune dépendance de mod)
 - **Poissons** : 30 `Fish_*_Item` (`zip:Server/Item/Items/Fish/`). Ce sont des objets vivants qui relâchent leur PNJ, avec une qualité de base et des états de rareté `*<Objet>_State_<Rareté>` (Uncommon à Legendary). 14 poissons « monstres », de qualité Legendary, n'ont pas d'état (`fishing-hytale.md` § 1.1). Le plan de cuisine les découpe en `Food_Fish_Raw`, de ×1 à ×16 selon la rareté (`sp4b-hytale-food.md` l. 171).
 - **Où ils vivent** : les fichiers `zip:Server/NPC/Spawn/World/Zone*/Spawns_*_Fish_*.json` lient chaque espèce à des environnements `Env_ZoneN_*`. Les rivières et les côtes y ont toutes `DayTimeRange [6, 24]` ; les océans n'ont aucune tranche (`fishing-hytale.md` § 1.4, tableau).
 - **Pondérations de référence** : les listes de la nasse (`zip:Server/Drops/Traps/Drops_Fishing_Trap_Crude*.json`). Sans appât : poissons, sel, déchets, trésors. Avec appât : communs 100, peu communs 50, rares 10, épiques 5, légendaires 1, monstres 0,1 (`fishing-hytale.md` § 1.3).
-- **Outils** : paliers Crude, Copper, Iron, Thorium, Cobalt, puis Adamantite, Mithril et Onyxium. Durabilité des haches : 200, 300, 500, 700, 700, 1000, 400. Recettes : Crude au `Fieldcraft` (catégorie `Tools`), les autres à l'établi (`Workbench_Tools`) (`zip:Server/Item/Items/Tool/Hatchet/Tool_Hatchet_*.json`).
+- **Outils** : paliers Crude, Copper, Iron, Thorium, Cobalt, puis Adamantite, Mithril et Onyxium. Durabilité des haches : 200, 300, 500, 700, 700, 1000, 400, 450. Recettes : Crude au `Fieldcraft` (catégorie `Tools`), les autres à l'établi (`Workbench_Tools`) (`zip:Server/Item/Items/Tool/Hatchet/Tool_Hatchet_*.json`).
 - **Briques** :
   - lancer chargé `Charging`, avec une table « durée tenue → interaction » (`Ability_ChargedShot_Cast.json`) ;
   - projectile `ProjectileModule.spawnProjectile` ; la physique `Standard` calcule la poussée d'Archimède (densité 700 < eau 1000), mais aucune interaction ne signale l'entrée dans l'eau : il faut lire `isInFluid()` (`StandardPhysicsProvider.java:648`) ;
@@ -77,13 +77,14 @@ HyAngler (aucune dépendance de mod)
 
 ## 5. Minecraft vanilla, la référence du système
 
-Source : `fishing-benchmark.md` § 2 (wiki Minecraft), et la copie fidèle qu'en fait MineColonies (`mc-fisherman.md`, `NewBobberEntity`).
+Source : `FishingHook` de vanilla lui-même (serveur officiel 26.3 décompilé, non obfusqué ; `tick`, `catchingFish`, `calculateOpenWater`, `getOpenWaterTypeForBlock`, `retrieve`), `data/minecraft/loot_table/gameplay/fishing.json` et `enchantment/lure.json`, et `fishing-benchmark.md` § 2 (wiki Minecraft). La copie de MineColonies (`NewBobberEntity`, `mc-fisherman.md`) n'est **pas** fidèle à vanilla (attente 1 060-1 300 avec un plancher de 5, pas d'eau libre) : elle ne sert qu'au pêcheur de P6.
 
-- **Attente** : `U[100, 600] − 100 × appât` ticks, au moins 1. Le compte baisse de 1 par tick, de 2 avec une chance de 25 % s'il pleut sur le bouchon, et ne baisse pas avec une chance de 50 % si le bouchon ne voit pas le ciel.
+- **Attente** : `U[100, 600] − 100 × appât` ticks, tirée au tick qui suit l'arrivée dans l'eau (et la fin d'une touche manquée). Vanilla retire au tick suivant une attente de 0 ou moins (40 % des tirages avec l'appât 3) ; HyAngler tire directement dans la partie positive, ce qui garde la même loi (écart, § 14). Un appât au-delà de 5 compte pour 5 : dès 6, aucune attente de vanilla n'est positive.
+- **Le compte** baisse de 1 par tick, de 2 avec une chance de 25 % s'il pleut sur le bouchon, et ne baisse pas avec une chance de 50 % si le bouchon ne voit pas le ciel. Il ne tourne que si le bouchon est dans l'eau, comme chez vanilla (`catchingFish` n'est appelé qu'avec de l'eau sous le bouchon) : l'attente, l'approche et la fenêtre s'arrêtent si l'eau disparaît.
 - **Approche** : `U[20, 80]` ticks, pendant lesquels le poisson nage vers le bouchon (bulles et sillage).
 - **Fenêtre de ferrage** : `U[20, 40]` ticks.
-- **Catégories** : poisson 85 (qualité −1), déchet 10 (−2), trésor 5 (+2). Poids effectif `max(⌊poids + qualité × chance⌋, 0)`. Les trésors exigent une **eau libre** : un cube 5 × 4 × 5 autour du bouchon fait seulement d'eau dessous et d'air dessus.
-- **Usure** : 1 par prise, 2 si le bouchon est posé au sol, 0 si rien n'a mordu.
+- **Catégories** : poisson 85 (qualité −1), déchet 10 (−2), trésor 5 (+2). Poids effectif `max(⌊poids + qualité × chance⌋, 0)`. Les trésors exigent une **eau libre** : un cube 5 × 4 × 5 autour du bouchon fait seulement d'eau dessous et d'air dessus. L'eau ne compte que dans une case qu'aucun bloc solide n'occupe ; l'air, c'est aussi un nénuphar (`Blocks.LILY_PAD` chez vanilla, les `Plant_Flower_Water_*` de Hytale, liste `waterSurface` de l'id-map, car la plupart sont `Solid`). L'eau libre se teste à chaque tick de l'approche et de la touche, et ne tient que si elle a tenu à chacun : elle se perd quand le compteur `outOfWaterTime` (+1 par tick hors de l'eau, −1 par tick dans l'eau, de 0 à 10) atteint 10. Elle redevient vraie dès que l'attente reprend.
+- **Usure** : 1 par prise, 2 si le bouchon est au sol quand on le ramène (même pendant une touche : la prise est donnée), 0 si rien n'a mordu. Un bouchon au sol 1 200 ticks de suite disparaît (`life`), sans usure ; le compte repart de zéro dès qu'il quitte le sol, et un bouchon tombé au sol qui roule dans l'eau pêche.
 
 Ce sont des règles de système (des délais et des poids), pas des mesures du monde Minecraft : elles restent en ticks à 20 par seconde, comme dans tous nos cœurs.
 
@@ -94,7 +95,7 @@ Chaque type est un `AssetStore` de HyAngler, lu dans tous les packs, sous `Serve
 - un fichier par entrée, **nommé par l'id de l'objet Hytale** qu'il décrit ;
 - un pack chargé après HyAngler remplace notre fichier en fournissant le même nom ;
 - lecture tolérante : une clé absente prend sa valeur par défaut, une clé inconnue est ignorée (P2 ajoutera des clés de taille) ;
-- un fichier invalide pour le cœur (objet inconnu, valeur hors bornes, condition inconnue ou mal formée) est écarté, journalisé une fois en WARNING, et listé par le selftest. Une **erreur de type** dans un champ typé (`"Weight": "trente"`) est, elle, une erreur de décodage de Hytale : dans un pack zip ou jar, elle arrête le serveur, comme pour tout asset de Hytale (`fishing-hytale.md` § 5.13). Les conditions et modificateurs sont lus en BSON brut et jugés par le cœur : seule une erreur de type sur `Weight`, `Quality`, `Rarities`, `Category`, `Count`, `Tier`, `Lure`, `Luck` ou `MaxLine` peut en arriver là. Nos fichiers sont vérifiés au build (`CheckPackAssets`) ;
+- un fichier invalide pour le cœur (objet inconnu, valeur hors bornes, condition inconnue ou mal formée) est écarté, journalisé une fois en WARNING, et listé par le selftest. Une **erreur de type** dans un champ typé (`"Weight": "trente"`) est, elle, une erreur de décodage de Hytale : dans un pack zip ou jar, elle arrête le serveur, comme pour tout asset de Hytale (`fishing-hytale.md` § 5.13). Les conditions et modificateurs sont lus en BSON brut, de toute forme (`RawBsonCodec` : une liste à la place d'un objet ne lève pas), et jugés par le cœur : seule une erreur de type sur `Weight`, `Quality`, `Rarities`, `Category`, `Count`, `Tier`, `Lure`, `Luck` ou `MaxLine` peut en arriver là. Nos fichiers sont vérifiés au build (`CheckPackAssets`) ;
 - un objet sans fichier ne se pêche pas.
 
 ### 6.1 Poissons : `Server/HyAngler/Fish/<id d'objet>.json`
@@ -117,7 +118,7 @@ Chaque type est un `AssetStore` de HyAngler, lu dans tous les packs, sous `Serve
 ```
 
 - `Weight` (entier ≥ 1) : son poids dans la catégorie poisson ; `Quality` (entier, défaut 0) : sa sensibilité à la chance (vanilla) ;
-- `Rarities` (défaut `true` si l'objet a des états de rareté) : à la prise, tirer un état de rareté (§ 6.3) ;
+- `Rarities` (défaut `true`) : à la prise, tirer un état de rareté (§ 6.3). Il ne peut que couper le tirage : un objet sans états de rareté n'en tire jamais, même avec `true` ;
 - `Conditions` : toutes doivent être vraies (§ 6.4), sinon le poisson est exclu ;
 - `Modifiers` : multiplicateurs appliqués au poids quand leur condition est vraie (Tide `conditional`).
 
@@ -127,7 +128,7 @@ Les déchets et les trésors, sur le même modèle : `Category` (`Junk` ou `Trea
 
 ### 6.3 Rareté
 
-Un poisson à états tire son état après le choix de l'espèce. Les poids sont ceux de la nasse appâtée : Common 100, Uncommon 50, Rare 10, Epic 5, Legendary 1. La chance de la canne les ajuste avec des qualités 0, +1, +2, +3, +4 (même formule que § 5). L'objet donné est l'état `*<Objet>_State_<Rareté>`, ou l'objet de base pour Common. Les poissons « monstres » n'ont pas d'état : leur rareté vient de leur faible `Weight`. Défaut des assets à contourner : l'état Epic porte le ResourceType `Fish_Rare` (`fishing-hytale.md` § 1.1), ce qui ne change rien au tirage.
+Un poisson à états tire son état après le choix de l'espèce. Les poids sont ceux de la nasse appâtée : Common 100, Uncommon 50, Rare 10, Epic 5, Legendary 1. La chance de la canne les ajuste avec des qualités 0, +1, +2, +3, +4 (même formule que § 5). L'objet donné est l'état `*<Objet>_State_<Rareté>`, ou l'objet de base pour Common. Un objet est « à états » s'il en a au moins un (Uncommon, Rare, Epic ou Legendary) : tous n'ont pas les quatre (`Fish_Tang_Blue_Item` commence à Rare, `Fish_Clownfish_Item` à Epic, `Fish_Jellyfish_Blue_Item` n'a que Legendary). Un rang tiré que l'objet n'a pas donne l'état le plus proche en dessous qu'il a, sinon l'objet de base (tâche 14, `withState` levant sur un état inconnu, `fishing-hytale.md` § 5.5). Les poissons « monstres » n'ont pas d'état : leur rareté vient de leur faible `Weight`. Défaut des assets à contourner : l'état Epic porte le ResourceType `Fish_Rare` (`fishing-hytale.md` § 1.1), ce qui ne change rien au tirage.
 
 ### 6.4 Conditions
 
@@ -138,8 +139,8 @@ Un poisson à états tire son état après le choix de l'espèce. Les poids sont
 | `Zone` | `Ids` (`Zone0`…`Zone4`) | la zone de la case en fait partie (le tag `ZoneN` de son environnement) |
 | `Water` | `Kind` : `Fresh` ou `Salt` | eau salée = environnement de la liste `saltEnvironments` de `hyangler/id-map.json` (océans `Env_Zone0_*` et côtes `*_Shores`) ; sinon eau douce |
 | `Depth` | `Min`, `Max` (blocs d'eau sous la surface) | la colonne d'eau sous le bouchon est dans les bornes (parcours borné) |
-| `Time` | `From`, `To` (heures 0 à 24, `From > To` passe minuit) | l'heure du monde est dans la plage |
-| `Weather` | `Ids` et/ou `Rain` (booléen) | la météo de la case en fait partie, ou il pleut sur le bouchon |
+| `Time` | `From`, `To` (heures 0 à 24, `From > To` passe minuit, `From = To` refusé) | l'heure du monde est dans la plage |
+| `Weather` | `Ids` et/ou `Rain` (booléen) | chaque clé donnée tient : la météo de la case est l'une des `Ids`, et il pleut sur le bouchon si `Rain` est vrai (ne pleut pas s'il est faux) |
 | `Moon` | `Phases` (indices) | la phase de lune en fait partie |
 | `OpenWater` | aucun | le cube 5 × 4 × 5 de vanilla autour du bouchon |
 | `Sky` | `Visible` (booléen) | le bouchon voit le ciel |
@@ -187,15 +188,31 @@ Les environnements sont repris des fichiers d'apparition de Hytale (`fishing-hyt
 | `HyAngler_Rod_Iron` | 1 | 1 | 500 | établi : lingot de fer, cuir léger, tissu de lin |
 | `HyAngler_Rod_Thorium` | 2 | 1 | 700 | établi de palier 2 (`RequiredTierLevel` 2) : lingot de thorium, cuir moyen, lin |
 | `HyAngler_Rod_Cobalt` | 2 | 2 | 700 | établi de palier 2 : lingot de cobalt, cuir lourd, shadoweave |
+| `HyAngler_Rod_Adamantite` | 3 | 2 | 1000 | établi de palier 3 : lingot d'adamantite, cuir lourd, cindercloth |
+| `HyAngler_Rod_Mithril` | 3 | 3 | 400 | établi de palier 3 : lingot de mithril, cuir d'orage |
+| `HyAngler_Rod_Onyxium` | 3 | 3 | 450 | établi de palier 3 : lingot d'onyxium, cuir d'orage (la hache d'onyxium de Hytale n'a pas de recette en pre.5 : écart, § 14) |
 
-- Les stats viennent de `Server/HyAngler/Rods/<id>.json` (`Tier`, `Lure`, `Luck`, `MaxLine`), ouvert comme les poissons ; la durabilité est celle de l'objet (`MaxDurability`), égale à celle de la hache du même palier (§ 4). Les quantités exactes des recettes s'alignent sur celles des haches du même palier.
-- Les modèles sont nouveaux, faits dans Blockbench par blockpaint, et montrés à l'utilisateur avant le commit. Le modèle client inutilisé `FishingRod.blockymodel` sert de référence de proportions. La ligne ne peut pas partir du bout de la canne : `AttachedBeam` ne vise qu'un nœud du modèle de l'entité, donc elle part de la main du joueur (`R-Attachment`, `fishing-hytale.md` § 5.3).
+- **Huit cannes, une par palier d'outil de Hytale** (amendement du 2026-10-05 : l'utilisateur a demandé l'adamantite, le mithril et l'onyxium le 2026-10-04). Appât et chance ne dépassent pas 3, comme les enchantements Appât et Chance de la mer de vanilla ; mithril et onyxium ne diffèrent que par la durabilité tant que P3 n'ajoute pas les lignes et les moulinets.
+- Les stats viennent de `Server/HyAngler/Rods/<id>.json` (`Tier`, `Lure`, `Luck`, `MaxLine`), ouvert comme les poissons ; la durabilité est celle de l'objet (`MaxDurability`), égale à celle de la hache du même palier (§ 4), comme sa `Quality` (Crude et Copper `Common`, Iron `Uncommon`, Thorium à Adamantite `Rare`, Mithril et Onyxium `Epic`). Une canne demande un peu moins de métal que la hache du même palier.
+- **Les modèles** (approuvés par l'utilisateur dans Blockbench le 2026-10-04) : un dessin par palier, dans le langage que Hytale donne aux arcs de ce palier (`zip:Common/Items/Weapons/Bow/<Tier>`), sur un squelette commun. Le squelette, ce sont quatre sections articulées en chaîne (`Rod_Blank › Rod_Mid › Rod_Upper › Rod_Tip`, charnières à 16, 49, 83 et 100 unités), la manivelle (`Rod_Reel_Crank`) sur l'axe de son moulinet et l'anneau du scion (ses quatre barres `Rod_Tip_Ring_*`). Les animations et le suivi de la ligne en dépendent. Les modèles sont générés par `tools/angler/rods.py` (dessins : `rod_designs.py`, `rod_designs_rare.py`), qui refuse une pièce ou un groupe de pièces qui ne tient pas au reste par une face.
+
+### 7.1 bis Les animations (essais du 2026-10-04, `fishing-hytale.md` § 7)
+
+- Un jeu d'animations propre, `Server/Item/Animations/HyAngler_Rod.json` (`"Parent": "Item"`), fait dans Blockbench sur le joueur de Hytale avec la canne en attachement. Il compte treize entrées : `Idle`, `CastCharging`, `Cast`, `Bite`, `Hook`, `FightLight`, `FightHeavy`, `FightPump`, `ReelFight`, `Reel`, `Escape`, `Snap`, `Catch`. Une vraie canne ne plie pas à l'armé (le bras la ramène droite derrière l'épaule) ; seul le fouet avant fait traîner le scion, et elle plie sous un poisson. Chaque entrée a un fichier de 3e personne (corps et canne) et, sauf `Idle`, un `_FPS` (canne seule) : 25 fichiers. `Idle` garde en 1re personne celui de vanilla (`Main_Handed/Item/Idle_FPS.blockyanim`).
+- Le `Charging` joue `CastCharging`, et les paliers de `Next` jouent `Cast` (`Effects.ItemAnimationId`). Le serveur joue les autres au bon moment par `AnimationUtils.playAnimation(…, Action, "HyAngler_Rod", …, true, …)`. En P1, ce sont `Bite` à la touche ; `Hook` puis `Catch` à la prise ; `Escape` pour un poisson manqué ; `Snap` à la casse. Le bouchon reste 40 ticks après la fin du lancer, le temps que l'animation de fin se joue avec sa ligne. `Reel` (manivelle à vide) sert au clic gauche de la canne. `FightLight`, `FightHeavy`, `FightPump` et `ReelFight` attendent le combat (P4).
 
 ### 7.2 Le lancer, le bouchon, la ligne
 
 1. **Lancer** : clic droit maintenu, interaction `Charging` à trois paliers (0 ; 0,5 ; 1 s → force de lancer faible, moyenne, forte). Elle se termine par une interaction Java de HyAngler qui lance le bouchon (`spawnProjectile`), avec le son `SFX_Tool_Hookshot_Fire` en attendant un son propre.
-2. **Ligne** : un `BeamComponent` sur le bouchon, `AttachedBeam.toEntity(joueur, "R-Attachment")`, avec un faisceau propre `HyAngler_Line` (texture de fil fine, `Server/Entity/Beams/`). C'est un segment droit (`fishing-hytale.md` § 4.1).
-3. **Bouchon** : un projectile `Standard` avec un modèle propre. Un système de HyAngler lit `isInFluid()` des seuls bouchons : dès le contact, le bouchon est **figé à la surface** et oscille doucement (technique de Cozy Tales, idée seulement). Posé au sol, il reste au sol (§ 7.4). Sa durée de vie est passée à `spawnProjectile` (le défaut est de 5 min).
+2. **Ligne** (recette validée en jeu le 2026-10-04, `fishing-hytale.md` § 7.5, « Bilan ») :
+   - un faisceau propre `HyAngler_Line`, un fil clair de 2 px (`Server/Entity/Beams/`, texture sous `Common/Beams/`) ;
+   - une ligne qui pend : 18 entités porteuses sans modèle (19 segments) entre le bouchon et le scion, que le serveur pose à chaque tick sur une parabole sous la corde. La flèche vaut 12 % de la corde au repos et 1,5 % tendue (2,5 blocs au plus), et elle s'approche de sa cible de 25 % de l'écart par tick ;
+   - le dernier segment s'accroche à l'os `R-Attachment` du pêcheur, décalé en blocs jusqu'au scion, dans le repère de l'os tel que l'animation le pose. Le serveur ajoute le pli des sections, mesuré par entrée dans Blockbench, change le faisceau sur place (`BeamComponent.set`), avance de 2 ticks et passe d'une pose à l'autre sur la `BlendingDuration` de l'entrée ;
+   - les porteurs sont posés sur le scion vu du serveur : les mêmes pistes, depuis les pieds, tournées autour de l'épaule selon le regard (le jeu `Item` fait suivre le regard à l'épaule, de −30° à 60°) ;
+   - une ligne cassée (`BROKEN`) est retirée d'un coup, porteurs compris ; toute fin du bouchon retire la ligne (`RefSystem` sur le bouchon).
+
+   **Vue** : la pêche se joue en 3e personne (décision de l'utilisateur). En 1re personne, la canne dessinée devant la caméra n'est pas où la ligne s'accroche, et le serveur ne voit pas la vue du joueur. Au lancer, la vue passe en 3e personne, **sans être bloquée** (`SetServerCamera(ThirdPerson, false, null)`, décision de l'utilisateur du 2026-10-05) : le joueur peut revenir en 1re personne, et la pêche continue, car aucun paquet du client ne dit au serveur la vue choisie (vérifié : `ClientMovement`, `SetMovementStates`, `SyncPlayerPreferences`, `MouseInteraction`). À la fin du bouchon, quelle qu'elle soit, elle revient à la vue imposée par le mode de jeu s'il y en a une, sinon à celle du joueur (comme `SpectatorSystems.applyFreeCamera`), sauf si le joueur a déjà relancé ; un joueur parti dans un autre monde la retrouve par l'univers (`Universe.getPlayer`).
+3. **Bouchon** : un projectile `Standard` avec un modèle propre. Un système de HyAngler lit `isInFluid()` des seuls bouchons : dès le contact, le bouchon est **figé à la surface** et oscille doucement (technique de Cozy Tales, idée seulement). Posé au sol, il reste au sol (§ 7.4). Sa durée de vie est passée à `spawnProjectile` (le défaut est de 5 min) : une heure, car le lancer n'a pas de durée maximale fixe (§ 7.4).
 4. **Second clic droit** : ramène la ligne. Pendant la fenêtre de ferrage, c'est la prise ; sinon, rien.
 
 ### 7.3 L'attente et la prise
@@ -206,19 +223,20 @@ Les environnements sont repris des fichiers d'apparition de Hytale (`fishing-hyt
   - `APPROACH` : bulles `Water_Bubble_Stream` en sillage vers le bouchon ;
   - `BITING` : le bouchon plonge, éclaboussure `Water_Splash`, son `SFX_Water_MoveIn`, fenêtre de ferrage ;
   - puis `CAUGHT`, `ESCAPED`, `GROUNDED`, `BROKEN` ou `CANCELLED`.
-- **À la prise**, le plugin construit le `FishingContext` à la case du bouchon (§ 8.1), le cœur tire la prise (§ 6) et applique les crochets de prise (§ 8.1). L'objet vole du bouchon vers le joueur (`interactivelyPickupItem` avec `origin` au bouchon) et la canne s'use (§ 5).
+- **À la prise**, le plugin construit le `FishingContext` à la case du bouchon (§ 8.1), avec l'eau libre que le lancer a gardée pendant l'approche et la touche (`CastSession.openWater`, § 5 ; le plugin lit `ContextFactory.openWater` à chaque tick de ces deux états seulement), le cœur tire la prise (§ 6) et applique les crochets de prise (§ 8.1). L'objet vole du bouchon vers le joueur (`interactivelyPickupItem` avec `origin` au bouchon) et la canne s'use (§ 5).
 
 ### 7.4 Les échecs (aucun état sans sortie, CLAUDE.md § 4)
 
 | Cas | Effet |
 |---|---|
-| ferrer hors de la fenêtre | rien ne vient, usure 0 ; la touche passée, retour à l'attente |
-| bouchon posé au sol | ramené au clic, usure 2 |
+| ferrer hors de la fenêtre, ou pendant le vol | rien ne vient, usure 0 ; la touche passée, retour à l'attente |
+| bouchon au sol | ramené au clic, usure 2 ; disparu après `MAX_GROUNDED_TICKS` (1 200, vanilla) au sol de suite, lancer annulé |
+| l'eau disparaît sous le bouchon | le compte s'arrête (vanilla) jusqu'à la borne du cycle |
 | distance joueur-bouchon > `MaxLine` (32 par défaut) | la ligne casse, le bouchon disparaît |
-| plus de canne en main, déconnexion, mort | lancer annulé, bouchon et ligne retirés |
+| plus de canne en main (autre emplacement, canne jetée ou déplacée ; lu à chaque tick du bouchon), déconnexion, mort, changement de monde | lancer annulé, bouchon et ligne retirés au tick suivant, sans animation |
 | chunk déchargé (Hytale retire le bouchon, sa `Ref` n'est plus valide) | lancer annulé |
-| `FLYING` plus de 200 ticks sans eau ni sol | lancer annulé |
-| durée totale d'un lancer > `MAX_SESSION_TICKS` (2 400) | lancer annulé (borne de sûreté, au-delà des 600 + 80 + 40 ticks de vanilla) |
+| `FLYING` plus de 200 ticks au total sans eau (le compte gelé au sol) | lancer annulé |
+| une attente, son approche et sa fenêtre durent plus de 4 fois leur durée tirée (`CYCLE_SLACK`) | lancer annulé (borne de sûreté, remise à zéro à chaque attente tirée : elle suit le multiplicateur de la config, et un ciel caché ne double qu'en moyenne la durée) |
 
 Un seul lancer actif par joueur. L'état du lancer est gardé dans le cœur, indexé par joueur, jamais sauvegardé.
 
@@ -284,8 +302,8 @@ HyAngler y remplace les tables de pêche de Minecraft vers lesquelles MineColoni
   - poids effectifs avec la chance, exclusion à poids nul, modificateurs ;
   - catégories 85/10/5 et règle de l'eau libre pour les trésors ;
   - tirage de la rareté ;
-  - attente, approche et fenêtre : bornes, pluie, ciel, appât, plancher à 1 ;
-  - machine d'état : chaque transition, chaque échec, la borne `MAX_SESSION_TICKS` ;
+  - attente, approche et fenêtre : bornes, pluie, ciel, appât (tirage positif, plafond à 5), plancher à 1 ;
+  - machine d'état : chaque transition, chaque échec, le compte arrêté hors de l'eau, les bornes du vol, du sol et du cycle ;
   - lecture tolérante : clé absente, clé inconnue, valeur hors bornes, type de condition inconnu ;
   - registre de conditions et crochets de prise, avec un faux mod.
   
@@ -303,6 +321,18 @@ HyAngler y remplace les tables de pêche de Minecraft vers lesquelles MineColoni
    - les états `*Fish_*_Item_State_*` donnés par un autre pack ont-ils le bon nom et la bonne icône ?
    
    Si l'un échoue, la spec est amendée avant la suite (`fishing-hytale.md`, questions en jeu).
+
+   Fait le 2026-10-04 (`fishing-hytale.md` § 6 et § 7). Réponses :
+   - le bouchon ne flotte pas seul : il est figé, comme prévu ;
+   - le lancer chargé marche ;
+   - la ligne pend et suit la canne (§ 7.2) ;
+   - les animations sont les nôtres (§ 7.1 bis) ;
+   - la vue est imposée en 3e personne.
+
+   Restent ouvertes, pour les tâches de la prise et de la perche :
+   - la lisibilité de la ligne à 20 et 30 blocs ;
+   - l'objet qui vole du bouchon vers le joueur ;
+   - les états de rareté donnés par un autre pack.
 2. **Garde-fous** (accord de l'utilisateur donné en choisissant « un mod en plus » ; session lancée avec `HYCOLONY_GUARDRAILS_UNLOCKED=1`) :
    - CLAUDE.md § 1 : six mods, HyAngler, ses paquets `api`, ses modules ;
    - § 7 : `hyangler.lang`, `hyangler/id-map.json`, les types d'assets `Server/HyAngler/` ;
@@ -317,14 +347,14 @@ Chaque ligne aura sa spec. L'API de P1 porte déjà ce qu'il faut pour ne pas ca
 
 | Sous-projet | Contenu |
 |---|---|
-| **P1** (cette spec) | moteur, API, données ouvertes, 5 cannes montées, bouchon, ligne, attente de vanilla, perche, commandes |
+| **P1** (cette spec) | moteur, API, données ouvertes, 8 cannes montées et leurs animations, bouchon, ligne qui pend, attente de vanilla, perche, commandes |
 | **P6** | le pêcheur de HyColony (MC `BuildingFisherman`, `JobFisherman`, `EntityAIWorkFisherman`) sur l'API |
 | **P2** | taille et poids (loi log-normale, trophée ; Tide `FishSizeModel`), records personnels et du serveur, **journal** (silhouettes, habitats et heures découverts, nourri par `chances`) |
 | **Bestiaire** | nouvelles espèces sur le rig de Hytale (le brochet d'Europe de l'essai, carpe, esturgeon, cabillaud…), là où `/hyangler test` montre des zones pauvres |
-| **P3** | **établi de pêche** et pièces : canne (blank), **moulinet** (vitesse, frein, capacité), **ligne** (résistance, discrétion, longueur ; fibre, soie, tressée, câble d'acier contre les dents du brochet), **hameçon** (taille, fenêtre, prise double, ardillon), **flotteur et plomb** (surface, mi-eau, fond), **appâts** consommables et **leurres**, **boîte à pêche** ; cannes Adamantite et Mithril |
+| **P3** | **établi de pêche** et pièces : canne (blank), **moulinet** (vitesse, frein, capacité), **ligne** (résistance, discrétion, longueur ; fibre, soie, tressée, câble d'acier contre les dents du brochet), **hameçon** (taille, fenêtre, prise double, ardillon), **flotteur et plomb** (surface, mi-eau, fond), **appâts** consommables et **leurres**, **boîte à pêche** |
 | **P4** | **mini-jeu** facultatif et réglable (barre de timing ou de tension), qui tient compte de la force et du comportement du poisson, du frein et de la résistance de la ligne ; un PNJ ne le joue jamais |
 | **P5** | pêche passive : la nasse de Hytale branchée sur le moteur, casiers, filets |
-| Plus tard | **coins de pêche** (remous), **pêche sous la glace**, en grotte, **dans la lave** (`Shellfish_Lava`), poisson ramené vivant (seau, aquarium, étang), **trophées au mur**, **couteau à filets** (poids → filets), quêtes et tournois, animations de lancer et de ferrage propres, sons propres |
+| Plus tard | **coins de pêche** (remous), **pêche sous la glace**, en grotte, **dans la lave** (`Shellfish_Lava`), poisson ramené vivant (seau, aquarium, étang), **trophées au mur**, **couteau à filets** (poids → filets), quêtes et tournois, sons propres |
 
 ## 14. Écarts et choix
 
@@ -335,7 +365,15 @@ HyAngler n'est pas un portage de MineColonies : la règle de fidélité de CLAUD
 - **eau salée** déduite de l'environnement (Hytale n'a qu'une eau) ;
 - **poissons et heures** : environnements de Hytale, heures et météo à nous (§ 6.5) ;
 - **rareté** : les états de rareté de Hytale, avec les poids de la nasse (§ 6.3) ;
-- **pas d'entité accrochée** au ferrage (vanilla tire une entité vers le joueur) : hors P1.
+- **pas d'entité accrochée** au ferrage (vanilla tire une entité vers le joueur) : hors P1 ;
+- **la pêche en 3e personne au lancer** (vanilla pêche dans les deux vues) : en 1re personne, Hytale dessine la canne ailleurs que là où la ligne s'accroche (§ 7.2) ; la vue reste libre ;
+- **une attente toujours positive** : vanilla retire au tick suivant une attente de 0 ou moins ; HyAngler tire dans la partie positive, même loi, sans ces quelques ticks (en moyenne 0,7 avec l'appât 3) (§ 5) ;
+- **un appât compté jusqu'à 5** : dès l'appât 6, toute attente de vanilla est négative et rien ne mord jamais (Paper corrige la même boucle : correctif « Fix Lure infinite loop », `paper-server/patches/sources/.../FishingHook.java.patch`) ; une canne d'un autre mod doit pêcher (§ 5) ;
+- **des bornes de sûreté** que vanilla n'a pas : un vol de 200 ticks au total sans eau (le compte gelé au sol), un cycle d'attente 4 fois sa durée tirée (§ 7.4), la chance comptée jusqu'à 1 024 et les sommes de poids plafonnées, pour qu'un fichier ou un mod extrême ne fasse jamais déborder un calcul ;
+- **pas de chance du joueur** (monde Hytale) : vanilla ajoute l'attribut Chance du joueur (`withLuck(luck + owner.getLuck())`) ; Hytale n'a pas d'attribut de chance, seule la canne compte ;
+- **une catégorie vide cède sa part** (monde Hytale) : chez vanilla, les sous-tables donnent toujours quelque chose, et une sous-table vide garderait son poids pour ne rien donner ; ici les poissons dépendent de l'environnement et de l'heure, une catégorie est souvent vide, et sa part va aux autres ;
+- **les qualités de rareté** (monde Hytale) : vanilla n'a pas de rareté, et la nasse de Hytale ignore la chance ; les qualités 0 à +4 sont à nous, sur la règle de qualité de vanilla (§ 6.3) ;
+- **la canne d'onyxium a une recette**, alors que la hache d'onyxium de Hytale n'en a aucune en pre.5 (ni recette ni butin qui la nomme) : sinon, la canne serait introuvable.
 
 ## 15. À vérifier pendant le plan (sources décompilées)
 
