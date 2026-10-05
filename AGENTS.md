@@ -5,14 +5,17 @@ source of the project rules.** Read it in full before writing or reviewing anyth
 need to know first. (CLAUDE.md is in French: it covers modules, class design, style, robustness, persistence,
 MineColonies fidelity, texts, tests and process.)
 
-## Five mods
+## Six mods
 
 HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`api/`, `core/`, `plugin/`) →
 HyVanilla (`vanilla/core`, `vanilla/plugin`, Minecraft's vanilla blocks), in one direction only. HyLens
-(`hylens/core`, `hylens/plugin`, the debugging mod) depends on HyColony and HyBlockUI. Each core is pure Java; a mod
-reaches another only through its `api` packages, HyColony's being `dev.hycolony.api` and `dev.hycolony.plugin.api`.
-HyColony's api is versioned: its stable signatures live in `api/api.txt` and `plugin/api.txt`, regenerated with
-`./gradlew :api:apiDump :plugin:apiDump` and committed with any api change. Details: CLAUDE.md § 1.
+(`hylens/core`, `hylens/plugin`, the debugging mod) depends on HyColony and HyBlockUI. HyAngler (`angler/api`,
+`angler/core`, `angler/plugin`, fishing) depends on no mod. Each core is pure Java; a mod reaches another only through
+its `api` packages, HyColony's being `dev.hycolony.api` and `dev.hycolony.plugin.api`, HyAngler's `dev.hyangler.api`
+and `dev.hyangler.plugin.api`. Both apis are versioned: their stable signatures live in `api/api.txt`,
+`plugin/api.txt`, `angler/api/api.txt` and `angler/plugin/api.txt`, regenerated with
+`./gradlew :api:apiDump :plugin:apiDump :angler-api:apiDump :angler-plugin:apiDump` and committed with any api change.
+Details: CLAUDE.md § 1.
 
 ## Verify before every commit
 

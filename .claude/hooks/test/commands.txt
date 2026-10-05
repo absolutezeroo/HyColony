@@ -346,6 +346,10 @@ deny Bash echo x > blockui/src/main/resources/config.json
 deny Bash echo x > domum/plugin/src/main/resources/config.json.bak
 deny Bash git add domum/plugin/src/main/resources/config.json
 deny unlocked Bash git add blockui/src/main/resources/config.json
+deny Bash echo x > angler/plugin/src/main/resources/config.json
+deny Bash git add angler/plugin/src/main/resources/config.json.bak
+deny Bash git add hylens/plugin/src/main/resources/config.json.bak
+deny Bash git add vanilla/plugin/src/main/resources/config.json
 deny Bash echo x > vanilla/plugin/src/main/resources/config.json
 deny Bash git add vanilla/plugin/src/main/resources/config.json.bak
 deny Bash echo x > hylens/plugin/src/main/resources/config.json.bak

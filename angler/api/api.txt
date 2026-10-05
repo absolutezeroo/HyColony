@@ -1,0 +1,205 @@
+public abstract sealed interface dev.hyangler.api.Angler permits dev.hyangler.api.Angler$Player, dev.hyangler.api.Angler$Plugin
+public static final record dev.hyangler.api.Angler$Player extends java.lang.Record implements dev.hyangler.api.Angler
+    public dev.hyangler.api.Angler$Player(java.util.UUID)
+    public final boolean dev.hyangler.api.Angler$Player.equals(java.lang.Object)
+    public final int dev.hyangler.api.Angler$Player.hashCode()
+    public final java.lang.String dev.hyangler.api.Angler$Player.toString()
+    public java.util.UUID dev.hyangler.api.Angler$Player.uuid()
+public static final record dev.hyangler.api.Angler$Plugin extends java.lang.Record implements dev.hyangler.api.Angler
+    public dev.hyangler.api.Angler$Plugin(java.lang.String,java.lang.String)
+    public final boolean dev.hyangler.api.Angler$Plugin.equals(java.lang.Object)
+    public final int dev.hyangler.api.Angler$Plugin.hashCode()
+    public final java.lang.String dev.hyangler.api.Angler$Plugin.toString()
+    public java.lang.String dev.hyangler.api.Angler$Plugin.id()
+    public java.lang.String dev.hyangler.api.Angler$Plugin.name()
+public final record dev.hyangler.api.ApiVersion extends java.lang.Record
+    public dev.hyangler.api.ApiVersion(int,int,int)
+    public final boolean dev.hyangler.api.ApiVersion.equals(java.lang.Object)
+    public final int dev.hyangler.api.ApiVersion.hashCode()
+    public int dev.hyangler.api.ApiVersion.major()
+    public int dev.hyangler.api.ApiVersion.minor()
+    public int dev.hyangler.api.ApiVersion.patch()
+    public java.lang.String dev.hyangler.api.ApiVersion.toString()
+    public static final dev.hyangler.api.ApiVersion dev.hyangler.api.ApiVersion.CURRENT
+public final record dev.hyangler.api.BiteTimes extends java.lang.Record
+    public dev.hyangler.api.BiteTimes(int,int,int)
+    public final boolean dev.hyangler.api.BiteTimes.equals(java.lang.Object)
+    public final int dev.hyangler.api.BiteTimes.hashCode()
+    public final java.lang.String dev.hyangler.api.BiteTimes.toString()
+    public int dev.hyangler.api.BiteTimes.approachTicks()
+    public int dev.hyangler.api.BiteTimes.waitTicks()
+    public int dev.hyangler.api.BiteTimes.windowTicks()
+public final record dev.hyangler.api.Catch extends java.lang.Record
+    public dev.hyangler.api.Catch(java.lang.String,int,dev.hyangler.api.CatchCategory,java.util.Optional<dev.hyangler.api.Rarity>,java.lang.String)
+    public dev.hyangler.api.CatchCategory dev.hyangler.api.Catch.category()
+    public final boolean dev.hyangler.api.Catch.equals(java.lang.Object)
+    public final int dev.hyangler.api.Catch.hashCode()
+    public final java.lang.String dev.hyangler.api.Catch.toString()
+    public int dev.hyangler.api.Catch.count()
+    public java.lang.String dev.hyangler.api.Catch.itemId()
+    public java.lang.String dev.hyangler.api.Catch.source()
+    public java.util.Optional<dev.hyangler.api.Rarity> dev.hyangler.api.Catch.rarity()
+public final enum dev.hyangler.api.CatchCategory extends java.lang.Enum<dev.hyangler.api.CatchCategory>
+    public static dev.hyangler.api.CatchCategory dev.hyangler.api.CatchCategory.valueOf(java.lang.String)
+    public static dev.hyangler.api.CatchCategory[] dev.hyangler.api.CatchCategory.values()
+    public static final dev.hyangler.api.CatchCategory dev.hyangler.api.CatchCategory.FISH
+    public static final dev.hyangler.api.CatchCategory dev.hyangler.api.CatchCategory.JUNK
+    public static final dev.hyangler.api.CatchCategory dev.hyangler.api.CatchCategory.TREASURE
+public final record dev.hyangler.api.CatchChance extends java.lang.Record
+    public dev.hyangler.api.CatchCategory dev.hyangler.api.CatchChance.category()
+    public dev.hyangler.api.CatchChance(java.lang.String,dev.hyangler.api.CatchCategory,double,java.lang.String)
+    public double dev.hyangler.api.CatchChance.probability()
+    public final boolean dev.hyangler.api.CatchChance.equals(java.lang.Object)
+    public final int dev.hyangler.api.CatchChance.hashCode()
+    public final java.lang.String dev.hyangler.api.CatchChance.toString()
+    public java.lang.String dev.hyangler.api.CatchChance.itemId()
+    public java.lang.String dev.hyangler.api.CatchChance.source()
+public abstract @interface dev.hyangler.api.Experimental implements java.lang.annotation.Annotation
+public abstract interface dev.hyangler.api.Fishing
+    public abstract <E extends dev.hyangler.api.event.FishingEvent> dev.hyangler.api.Subscription dev.hyangler.api.Fishing.subscribe(java.lang.Class<E>,java.util.function.Consumer<? super E>)
+    public abstract dev.hyangler.api.BiteTimes dev.hyangler.api.Fishing.biteTimes(int,java.util.random.RandomGenerator)
+    public abstract dev.hyangler.api.Subscription dev.hyangler.api.Fishing.addCatchHook(java.lang.String,dev.hyangler.api.condition.CatchHook)
+    public abstract dev.hyangler.api.condition.ConditionTypes dev.hyangler.api.Fishing.conditionTypes()
+    public abstract java.util.List<dev.hyangler.api.CatchChance> dev.hyangler.api.Fishing.chances(dev.hyangler.api.FishingContext)
+    public abstract java.util.Optional<dev.hyangler.api.Catch> dev.hyangler.api.Fishing.roll(dev.hyangler.api.FishingContext,java.util.random.RandomGenerator)
+    public abstract java.util.Optional<dev.hyangler.api.RodStats> dev.hyangler.api.Fishing.rod(java.lang.String)
+public final record dev.hyangler.api.FishingContext extends java.lang.Record
+    public boolean dev.hyangler.api.FishingContext.openWater()
+    public boolean dev.hyangler.api.FishingContext.raining()
+    public boolean dev.hyangler.api.FishingContext.skyVisible()
+    public dev.hyangler.api.FishingContext(java.lang.String,java.lang.String,dev.hyangler.api.WaterKind,int,boolean,boolean,double,java.lang.String,boolean,int,dev.hyangler.api.Tackle)
+    public dev.hyangler.api.Tackle dev.hyangler.api.FishingContext.tackle()
+    public dev.hyangler.api.WaterKind dev.hyangler.api.FishingContext.water()
+    public double dev.hyangler.api.FishingContext.hour()
+    public final boolean dev.hyangler.api.FishingContext.equals(java.lang.Object)
+    public final int dev.hyangler.api.FishingContext.hashCode()
+    public final java.lang.String dev.hyangler.api.FishingContext.toString()
+    public int dev.hyangler.api.FishingContext.depth()
+    public int dev.hyangler.api.FishingContext.moonPhase()
+    public java.lang.String dev.hyangler.api.FishingContext.environment()
+    public java.lang.String dev.hyangler.api.FishingContext.weather()
+    public java.lang.String dev.hyangler.api.FishingContext.zone()
+public final record dev.hyangler.api.Pos extends java.lang.Record
+    public dev.hyangler.api.Pos(int,int,int)
+    public final boolean dev.hyangler.api.Pos.equals(java.lang.Object)
+    public final int dev.hyangler.api.Pos.hashCode()
+    public final java.lang.String dev.hyangler.api.Pos.toString()
+    public int dev.hyangler.api.Pos.x()
+    public int dev.hyangler.api.Pos.y()
+    public int dev.hyangler.api.Pos.z()
+public final enum dev.hyangler.api.Rarity extends java.lang.Enum<dev.hyangler.api.Rarity>
+    public java.lang.String dev.hyangler.api.Rarity.hytaleName()
+    public static dev.hyangler.api.Rarity dev.hyangler.api.Rarity.valueOf(java.lang.String)
+    public static dev.hyangler.api.Rarity[] dev.hyangler.api.Rarity.values()
+    public static final dev.hyangler.api.Rarity dev.hyangler.api.Rarity.COMMON
+    public static final dev.hyangler.api.Rarity dev.hyangler.api.Rarity.EPIC
+    public static final dev.hyangler.api.Rarity dev.hyangler.api.Rarity.LEGENDARY
+    public static final dev.hyangler.api.Rarity dev.hyangler.api.Rarity.RARE
+    public static final dev.hyangler.api.Rarity dev.hyangler.api.Rarity.UNCOMMON
+public final record dev.hyangler.api.RodStats extends java.lang.Record
+    public dev.hyangler.api.RodStats(int,int,int,int)
+    public dev.hyangler.api.Tackle dev.hyangler.api.RodStats.tackle()
+    public final boolean dev.hyangler.api.RodStats.equals(java.lang.Object)
+    public final int dev.hyangler.api.RodStats.hashCode()
+    public final java.lang.String dev.hyangler.api.RodStats.toString()
+    public int dev.hyangler.api.RodStats.luck()
+    public int dev.hyangler.api.RodStats.lure()
+    public int dev.hyangler.api.RodStats.maxLine()
+    public int dev.hyangler.api.RodStats.tier()
+public abstract interface dev.hyangler.api.Subscription implements java.lang.AutoCloseable
+    public abstract void dev.hyangler.api.Subscription.close()
+public final record dev.hyangler.api.Tackle extends java.lang.Record
+    public dev.hyangler.api.Tackle(int,int,int,double,double,int,int,java.util.Optional<java.lang.String>)
+    public double dev.hyangler.api.Tackle.lineStrength()
+    public double dev.hyangler.api.Tackle.reelSpeed()
+    public final boolean dev.hyangler.api.Tackle.equals(java.lang.Object)
+    public final int dev.hyangler.api.Tackle.hashCode()
+    public final java.lang.String dev.hyangler.api.Tackle.toString()
+    public int dev.hyangler.api.Tackle.depthBias()
+    public int dev.hyangler.api.Tackle.hookSize()
+    public int dev.hyangler.api.Tackle.luck()
+    public int dev.hyangler.api.Tackle.lure()
+    public int dev.hyangler.api.Tackle.maxLine()
+    public java.util.Optional<java.lang.String> dev.hyangler.api.Tackle.bait()
+    public static dev.hyangler.api.Tackle dev.hyangler.api.Tackle.of(int,int,int)
+    public static final dev.hyangler.api.Tackle dev.hyangler.api.Tackle.NONE
+    public static final int dev.hyangler.api.Tackle.DEFAULT_MAX_LINE
+public final enum dev.hyangler.api.WaterKind extends java.lang.Enum<dev.hyangler.api.WaterKind>
+    public static dev.hyangler.api.WaterKind dev.hyangler.api.WaterKind.valueOf(java.lang.String)
+    public static dev.hyangler.api.WaterKind[] dev.hyangler.api.WaterKind.values()
+    public static final dev.hyangler.api.WaterKind dev.hyangler.api.WaterKind.FRESH
+    public static final dev.hyangler.api.WaterKind dev.hyangler.api.WaterKind.SALT
+public abstract interface dev.hyangler.api.condition.CatchHook
+    public abstract java.util.Optional<dev.hyangler.api.Catch> dev.hyangler.api.condition.CatchHook.apply(dev.hyangler.api.Angler,dev.hyangler.api.FishingContext,dev.hyangler.api.Catch)
+public abstract interface dev.hyangler.api.condition.Condition
+    public abstract boolean dev.hyangler.api.condition.Condition.test(dev.hyangler.api.FishingContext)
+public abstract interface dev.hyangler.api.condition.ConditionFactory
+    public abstract dev.hyangler.api.condition.Condition dev.hyangler.api.condition.ConditionFactory.create(dev.hyangler.api.condition.ConditionSpec)
+public abstract interface dev.hyangler.api.condition.ConditionSpec
+    public abstract java.lang.String dev.hyangler.api.condition.ConditionSpec.type()
+    public abstract java.util.List<java.lang.Integer> dev.hyangler.api.condition.ConditionSpec.integers(java.lang.String)
+    public abstract java.util.List<java.lang.String> dev.hyangler.api.condition.ConditionSpec.strings(java.lang.String)
+    public abstract java.util.Optional<java.lang.Boolean> dev.hyangler.api.condition.ConditionSpec.bool(java.lang.String)
+    public abstract java.util.Optional<java.lang.String> dev.hyangler.api.condition.ConditionSpec.string(java.lang.String)
+    public abstract java.util.OptionalDouble dev.hyangler.api.condition.ConditionSpec.number(java.lang.String)
+    public abstract java.util.OptionalInt dev.hyangler.api.condition.ConditionSpec.integer(java.lang.String)
+public abstract interface dev.hyangler.api.condition.ConditionTypes
+    public abstract java.util.Set<java.lang.String> dev.hyangler.api.condition.ConditionTypes.types()
+    public abstract void dev.hyangler.api.condition.ConditionTypes.register(java.lang.String,dev.hyangler.api.condition.ConditionFactory)
+public final record dev.hyangler.api.event.CastEnded extends java.lang.Record implements dev.hyangler.api.event.FishingEvent
+    public dev.hyangler.api.Angler dev.hyangler.api.event.CastEnded.angler()
+    public dev.hyangler.api.event.CastEnded(dev.hyangler.api.Angler,dev.hyangler.api.event.Outcome)
+    public dev.hyangler.api.event.Outcome dev.hyangler.api.event.CastEnded.outcome()
+    public final boolean dev.hyangler.api.event.CastEnded.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.CastEnded.hashCode()
+    public final java.lang.String dev.hyangler.api.event.CastEnded.toString()
+public final record dev.hyangler.api.event.CastStarted extends java.lang.Record implements dev.hyangler.api.event.FishingEvent
+    public dev.hyangler.api.Angler dev.hyangler.api.event.CastStarted.angler()
+    public dev.hyangler.api.Pos dev.hyangler.api.event.CastStarted.pos()
+    public dev.hyangler.api.event.CastStarted(dev.hyangler.api.Angler,dev.hyangler.api.Pos)
+    public final boolean dev.hyangler.api.event.CastStarted.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.CastStarted.hashCode()
+    public final java.lang.String dev.hyangler.api.event.CastStarted.toString()
+public final record dev.hyangler.api.event.CatchLanded extends java.lang.Record implements dev.hyangler.api.event.FishingEvent
+    public dev.hyangler.api.Angler dev.hyangler.api.event.CatchLanded.angler()
+    public dev.hyangler.api.Catch dev.hyangler.api.event.CatchLanded.landed()
+    public dev.hyangler.api.Pos dev.hyangler.api.event.CatchLanded.pos()
+    public dev.hyangler.api.event.CatchLanded(dev.hyangler.api.Angler,dev.hyangler.api.Catch,dev.hyangler.api.Pos)
+    public final boolean dev.hyangler.api.event.CatchLanded.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.CatchLanded.hashCode()
+    public final java.lang.String dev.hyangler.api.event.CatchLanded.toString()
+public final record dev.hyangler.api.event.FishBiting extends java.lang.Record implements dev.hyangler.api.event.FishingEvent
+    public dev.hyangler.api.Angler dev.hyangler.api.event.FishBiting.angler()
+    public dev.hyangler.api.Pos dev.hyangler.api.event.FishBiting.pos()
+    public dev.hyangler.api.event.FishBiting(dev.hyangler.api.Angler,dev.hyangler.api.Pos)
+    public final boolean dev.hyangler.api.event.FishBiting.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.FishBiting.hashCode()
+    public final java.lang.String dev.hyangler.api.event.FishBiting.toString()
+public abstract interface dev.hyangler.api.event.FishingEvent
+public abstract sealed interface dev.hyangler.api.event.Outcome permits dev.hyangler.api.event.Outcome$Broken, dev.hyangler.api.event.Outcome$Cancelled, dev.hyangler.api.event.Outcome$Caught, dev.hyangler.api.event.Outcome$Escaped, dev.hyangler.api.event.Outcome$Grounded
+public static final record dev.hyangler.api.event.Outcome$Broken extends java.lang.Record implements dev.hyangler.api.event.Outcome
+    public dev.hyangler.api.event.Outcome$Broken()
+    public final boolean dev.hyangler.api.event.Outcome$Broken.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.Outcome$Broken.hashCode()
+    public final java.lang.String dev.hyangler.api.event.Outcome$Broken.toString()
+public static final record dev.hyangler.api.event.Outcome$Cancelled extends java.lang.Record implements dev.hyangler.api.event.Outcome
+    public dev.hyangler.api.event.Outcome$Cancelled()
+    public final boolean dev.hyangler.api.event.Outcome$Cancelled.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.Outcome$Cancelled.hashCode()
+    public final java.lang.String dev.hyangler.api.event.Outcome$Cancelled.toString()
+public static final record dev.hyangler.api.event.Outcome$Caught extends java.lang.Record implements dev.hyangler.api.event.Outcome
+    public dev.hyangler.api.event.Outcome$Caught(java.util.Optional<dev.hyangler.api.Catch>)
+    public final boolean dev.hyangler.api.event.Outcome$Caught.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.Outcome$Caught.hashCode()
+    public final java.lang.String dev.hyangler.api.event.Outcome$Caught.toString()
+    public java.util.Optional<dev.hyangler.api.Catch> dev.hyangler.api.event.Outcome$Caught.landed()
+public static final record dev.hyangler.api.event.Outcome$Escaped extends java.lang.Record implements dev.hyangler.api.event.Outcome
+    public dev.hyangler.api.event.Outcome$Escaped()
+    public final boolean dev.hyangler.api.event.Outcome$Escaped.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.Outcome$Escaped.hashCode()
+    public final java.lang.String dev.hyangler.api.event.Outcome$Escaped.toString()
+public static final record dev.hyangler.api.event.Outcome$Grounded extends java.lang.Record implements dev.hyangler.api.event.Outcome
+    public dev.hyangler.api.event.Outcome$Grounded()
+    public final boolean dev.hyangler.api.event.Outcome$Grounded.equals(java.lang.Object)
+    public final int dev.hyangler.api.event.Outcome$Grounded.hashCode()
+    public final java.lang.String dev.hyangler.api.event.Outcome$Grounded.toString()

@@ -1,6 +1,6 @@
 ---
 name: hytale-api
-description: Verify a Hytale server API of the pinned version (gradle.properties, today 0.7.0-pre.4) (class, method, event, component, asset) before using it in a mod's plugin (HyColony, HyDomum, HyVanilla, HyBlockUI, HyLens). Use whenever plugin code calls com.hypixel.* or an adapter needs a Hytale capability.
+description: Verify a Hytale server API of the pinned version (gradle.properties, today 0.7.0-pre.4) (class, method, event, component, asset) before using it in a mod's plugin (HyColony, HyDomum, HyVanilla, HyBlockUI, HyLens, HyAngler). Use whenever plugin code calls com.hypixel.* or an adapter needs a Hytale capability.
 user-invocable: false
 ---
 

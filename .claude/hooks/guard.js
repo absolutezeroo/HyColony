@@ -33,6 +33,8 @@ const PROTECTED = [
     ["vanilla/plugin/src/main/resources/config.json.bak", LOCAL],
     ["hylens/plugin/src/main/resources/config.json", LOCAL],
     ["hylens/plugin/src/main/resources/config.json.bak", LOCAL],
+    ["angler/plugin/src/main/resources/config.json", LOCAL],
+    ["angler/plugin/src/main/resources/config.json.bak", LOCAL],
     [".git/config", LOCAL],
     [".githooks/", GUARD],
     [".claude/hooks/", GUARD],

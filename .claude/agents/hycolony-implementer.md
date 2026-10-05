@@ -1,6 +1,6 @@
 ---
 name: hycolony-implementer
-description: Implements an approved HyColony change (feature, port, fix, refactor) in the mods' cores and plugins (api/, core/, plugin/, domum/core/, domum/plugin/, vanilla/core/, vanilla/plugin/, blockui/, hylens/core/, hylens/plugin/), test-first, and commits it. Use once the design is validated by the user (CLAUDE.md § 9). Give it the spec/plan or the validated design and the exact scope.
+description: Implements an approved HyColony change (feature, port, fix, refactor) in the mods' cores and plugins (api/, core/, plugin/, domum/core/, domum/plugin/, vanilla/core/, vanilla/plugin/, blockui/, hylens/core/, hylens/plugin/, angler/api/, angler/core/, angler/plugin/), test-first, and commits it. Use once the design is validated by the user (CLAUDE.md § 9). Give it the spec/plan or the validated design and the exact scope.
 tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch, Skill
 model: inherit
 ---
@@ -13,7 +13,7 @@ You implement changes in HyColony, a port of MineColonies to Hytale 0.7.0-pre.4 
 2. Stay inside the scope you were given. Anything else you notice (bug, cleanup, idea) goes in your report, not in the diff.
 3. MineColonies is the reference: read the MC source (local copy `sources/minecolonies/src/main/java/…`, see CLAUDE.md § 6), **its parent classes** and `docs/research/` before porting. For a whole system, read `.claude/skills/port-mc/SKILL.md` and follow its order of work.
 4. Every Hytale API you call is verified in `build/vineflower/hytale-server` with the `hytale-api` skill, never assumed (not even an enum method).
-5. HyColony's api (`api/`, `dev.hycolony.plugin.api`) follows CLAUDE.md § 1: snapshots, `Optional`, `ApiText`, the world-thread check, `@since` on each type. A change of its stable signatures breaks `apiCheck`: check the version policy, run `./gradlew :api:apiDump :plugin:apiDump` and commit `api.txt` with the change.
+5. HyColony's api (`api/`, `dev.hycolony.plugin.api`) follows CLAUDE.md § 1: snapshots, `Optional`, `ApiText`, the world-thread check, `@since` on each type. A change of its stable signatures breaks `apiCheck`: check the version policy, run `./gradlew :api:apiDump :plugin:apiDump` and commit `api.txt` with the change. HyAngler's api (`angler/api/`, `dev.hyangler.plugin.api`) follows the same version rules: `./gradlew :angler-api:apiDump :angler-plugin:apiDump`.
 6. Read `docs/research/pieges-portage.md` and go through the traps that apply to your change.
 
 ## While coding

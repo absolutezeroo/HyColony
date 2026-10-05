@@ -1,0 +1,8 @@
+public abstract interface dev.hyangler.plugin.api.HyAnglerApi
+    public abstract dev.hyangler.api.Fishing dev.hyangler.plugin.api.HyAnglerApi.fishing()
+    public abstract dev.hyangler.api.FishingContext dev.hyangler.plugin.api.HyAnglerApi.contextAt(com.hypixel.hytale.server.core.universe.world.World,int,int,int,dev.hyangler.api.Tackle)
+    public abstract java.util.Optional<dev.hyangler.api.Tackle> dev.hyangler.plugin.api.HyAnglerApi.tackleOf(com.hypixel.hytale.server.core.inventory.ItemStack) [java.util.Optional<dev.hyangler.api.Tackle>, @org.jspecify.annotations.Nullable() com.hypixel.hytale.server.core.inventory.ItemStack]
+    public static dev.hyangler.plugin.api.HyAnglerApi dev.hyangler.plugin.api.HyAnglerApi.get()
+public final class dev.hyangler.plugin.api.HyAnglerApiHolder
+    public static void dev.hyangler.plugin.api.HyAnglerApiHolder.clear()
+    public static void dev.hyangler.plugin.api.HyAnglerApiHolder.install(dev.hyangler.plugin.api.HyAnglerApi)

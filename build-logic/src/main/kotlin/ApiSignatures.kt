@@ -6,21 +6,24 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 
-/** The annotation that leaves a type, a method or a package out of an api's signatures (api spec § 4.1). */
-const val EXPERIMENTAL = "dev.hycolony.api.Experimental"
-
 /**
  * The public signatures of the compiled classes under [packageName] in [classesDirs], its sub-packages included:
  * each public type (its declaration, supertypes and permitted subtypes), then its public and protected members, sorted.
- * What carries [EXPERIMENTAL], or sits in a type or package that does, is left out. Classes are loaded with
- * [classpath], never initialised; the Gradle daemon's JVM must read the compiled class files. Not seen: constants'
- * values, annotation elements' defaults and declaration annotations (@Deprecated).
+ * What carries the annotation [experimentalName] (each api has its own, api spec § 4.1), or sits in a type or package
+ * that does, is left out. Classes are loaded with [classpath], never initialised; the Gradle daemon's JVM must read the
+ * compiled class files. Not seen: constants' values, annotation elements' defaults and declaration annotations
+ * (@Deprecated).
  */
-fun apiSignatures(classesDirs: Set<File>, classpath: Set<File>, packageName: String): List<String> {
+fun apiSignatures(
+    classesDirs: Set<File>,
+    classpath: Set<File>,
+    packageName: String,
+    experimentalName: String,
+): List<String> {
     val urls = (classesDirs + classpath).map { it.toURI().toURL() }.toTypedArray()
     return URLClassLoader(urls, ClassLoader.getPlatformClassLoader()).use { loader ->
         @Suppress("UNCHECKED_CAST")
-        val experimental = loader.loadClass(EXPERIMENTAL) as Class<out Annotation>
+        val experimental = loader.loadClass(experimentalName) as Class<out Annotation>
         classNames(classesDirs, packageName)
             .map { Class.forName(it, false, loader) }
             .filter { isStable(it, experimental) }

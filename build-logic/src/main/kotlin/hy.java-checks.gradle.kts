@@ -32,7 +32,10 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xmaxwarns", "10000"))
     options.errorprone {
         disableWarningsInGeneratedCode.set(true)
-        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui,dev.hyvanilla,dev.hylens")
+        option(
+            "NullAway:AnnotatedPackages",
+            "dev.hycolony,dev.hydomum,dev.hyblockui,dev.hyvanilla,dev.hylens,dev.hyangler",
+        )
         option("NullAway:JSpecifyMode", "true")
         check("NullAway", CheckSeverity.ERROR)
     }
@@ -124,9 +127,11 @@ val modApis = mapOf(
     "dev.hyvanilla." to listOf("dev.hyvanilla.api.", "dev.hyvanilla.plugin.api."),
     "dev.hycolony." to listOf("dev.hycolony.api.", "dev.hycolony.plugin.api."),
     "dev.hylens." to emptyList(),
+    "dev.hyangler." to listOf("dev.hyangler.api.", "dev.hyangler.plugin.api."),
 )
-// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum, dev.hyblockui, dev.hyvanilla or
-// dev.hylens), read when the task runs, since a module's build script sets its group after this convention is applied.
+// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum, dev.hyblockui, dev.hyvanilla,
+// dev.hylens or dev.hyangler), read when the task runs, since a module's build script sets its group after this
+// convention is applied.
 val ownMod = provider { "${project.group}." }
 val checkModApis by tasks.registering {
     group = "verification"
@@ -159,12 +164,19 @@ val checkModApis by tasks.registering {
     }
 }
 
-// CLAUDE.md § 1 (api spec § 4.3): the public signatures of HyColony's api, stable ones only, are kept in api.txt next
-// to the project's build script. apiCheck (part of check) fails when the compiled classes differ from it; apiDump
-// rewrites it, so every change of the api shows in the diff. What is @Experimental is left out (ApiSignatures.kt).
+// CLAUDE.md § 1 (api spec § 4.3): the public signatures of HyColony's and HyAngler's apis, stable ones only, are kept
+// in api.txt next to the project's build script. apiCheck (part of check) fails when the compiled classes differ from
+// it; apiDump rewrites it, so every change of the api shows in the diff. What is @Experimental is left out
+// (ApiSignatures.kt).
 // The signatures are read by reflection in the Gradle daemon, whose JDK formats them: it must be the workspace's.
-val apiPackages = mapOf(":api" to "dev.hycolony.api", ":plugin" to "dev.hycolony.plugin.api")
-apiPackages[path]?.let { apiPackage ->
+// Each project's api package, and the @Experimental annotation of its mod's api.
+val apiPackages = mapOf(
+    ":api" to ("dev.hycolony.api" to "dev.hycolony.api.Experimental"),
+    ":plugin" to ("dev.hycolony.plugin.api" to "dev.hycolony.api.Experimental"),
+    ":angler-api" to ("dev.hyangler.api" to "dev.hyangler.api.Experimental"),
+    ":angler-plugin" to ("dev.hyangler.plugin.api" to "dev.hyangler.api.Experimental"),
+)
+apiPackages[path]?.let { (apiPackage, experimental) ->
     val apiFile = layout.projectDirectory.file("api.txt").asFile
     val classesDirs = the<SourceSetContainer>().named("main").map { it.output.classesDirs }
     val compileClasspath = configurations.named("compileClasspath")
@@ -175,7 +187,7 @@ apiPackages[path]?.let { apiPackage ->
             throw GradleException("The api's signatures are read with the Gradle daemon's JDK " +
                 "${Runtime.version().feature()}; run Gradle on JDK $javaVersion (org.gradle.java.home).")
         }
-        return apiSignatures(classesDirs.get().files, compileClasspath.get().files, apiPackage)
+        return apiSignatures(classesDirs.get().files, compileClasspath.get().files, apiPackage, experimental)
     }
     tasks.register("apiDump") {
         group = "api"
