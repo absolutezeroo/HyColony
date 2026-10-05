@@ -41,6 +41,25 @@ class CatalogReaderTest {
     }
 
     @Test
+    void raritiesCannotBeTurnedOnForAnItemWithoutRarityStates() {
+        Catalog c = read(
+                new RawFile(Kind.FISH, "Fish_Pike_Item", "{\"Weight\":12,\"Rarities\":true}"),
+                new RawFile(Kind.FISH, "Fish_Trout_Rainbow_Item", "{\"Weight\":12,\"Rarities\":false}"));
+        assertFalse(c.fish().get(0).rarities());
+        assertFalse(c.fish().get(1).rarities());
+    }
+
+    @Test
+    void anInfiniteMultiplierIsRejected() {
+        Catalog c = read(new RawFile(
+                Kind.FISH,
+                "Fish_Pike_Item",
+                "{\"Weight\":12,\"Modifiers\":[{\"If\":{\"Type\":\"OpenWater\"},\"Multiplier\":\"Infinity\"}]}"));
+        assertTrue(c.fish().isEmpty());
+        assertEquals(1, c.rejections().size());
+    }
+
+    @Test
     void junkAndTreasureAreSortedByTheirCategory() {
         Catalog c = read(
                 new RawFile(Kind.CATCH, "Rubble_Stone", "{\"Category\":\"Junk\",\"Weight\":10,\"Count\":[1,3]}"),

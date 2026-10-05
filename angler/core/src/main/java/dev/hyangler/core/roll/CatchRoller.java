@@ -11,18 +11,27 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.random.RandomGenerator;
 
 /**
  * Rolls a catch (spec § 5, § 6): a category by vanilla's weights, then an entry of it by its effective weight, then a
- * count, and a rarity for a fish with rarity states. Pure: reads its immutable catalog and the context only.
+ * count, and a rarity for a fish with rarity states. Reads its immutable catalog and the context only; its one side
+ * effect: a condition that throws counts as failed and is reported to onFailure, from the caller's thread.
  */
 public final class CatchRoller {
     private static final CatchCategory[] CATEGORIES = CatchCategory.values();
     private final Catalog catalog;
+    private final Consumer<RuntimeException> onFailure;
 
-    public CatchRoller(Catalog catalog) {
+    public CatchRoller(Catalog catalog, Consumer<RuntimeException> onFailure) {
         this.catalog = catalog;
+        this.onFailure = onFailure;
+    }
+
+    /** The catalog it rolls from. */
+    public Catalog catalog() {
+        return catalog;
     }
 
     /** A catch, or empty when no entry of any category can bite in ctx. */
@@ -45,7 +54,7 @@ public final class CatchRoller {
     /** Every entry that can bite in ctx with its probability, most likely first; empty when none can. */
     public List<CatchChance> chances(FishingContext ctx) {
         int[] categoryWeights = categoryWeights(ctx);
-        double total = sum(categoryWeights);
+        double total = exactSum(categoryWeights);
         List<CatchChance> out = new ArrayList<>();
         if (total == 0) {
             return out;
@@ -55,7 +64,7 @@ public final class CatchRoller {
             List<Entry> entries = entries(c);
             int[] w = entryWeights(entries, ctx);
             double share = categoryWeights[k] / total;
-            double sum = sum(w);
+            double sum = exactSum(w);
             for (int i = 0; i < entries.size(); i++) {
                 if (w[i] > 0) {
                     out.add(new CatchChance(
@@ -70,7 +79,11 @@ public final class CatchRoller {
         return out;
     }
 
-    /** Each category's weight, in CATEGORIES' order; 0 for a category with no entry that can bite. */
+    /**
+     * Each category's weight, in CATEGORIES' order; 0 for a category with no entry that can bite. Deviation from
+     * vanilla (Hytale world): vanilla's sub-tables always give something, so an empty one keeps its weight and gives
+     * nothing; here fish live by environment and hour, a category is often empty, and its share goes to the others.
+     */
     private int[] categoryWeights(FishingContext ctx) {
         int[] w = new int[CATEGORIES.length];
         for (int k = 0; k < CATEGORIES.length; k++) {
@@ -88,10 +101,10 @@ public final class CatchRoller {
         };
     }
 
-    private static int[] entryWeights(List<Entry> entries, FishingContext ctx) {
+    private int[] entryWeights(List<Entry> entries, FishingContext ctx) {
         int[] w = new int[entries.size()];
         for (int i = 0; i < w.length; i++) {
-            w[i] = Weights.effective(entries.get(i), ctx);
+            w[i] = Weights.effective(entries.get(i), ctx, onFailure);
         }
         return w;
     }
@@ -107,8 +120,16 @@ public final class CatchRoller {
         throw new IllegalStateException("weighted pick past the total");
     }
 
+    /**
+     * The weights summed for a draw, at most Integer.MAX_VALUE. Deviation from vanilla: huge data weights cannot
+     * overflow into a negative total; past the cap, the last entries are never drawn.
+     */
     private static int sum(int[] w) {
-        int s = 0;
+        return (int) Math.min(exactSum(w), Integer.MAX_VALUE);
+    }
+
+    private static long exactSum(int[] w) {
+        long s = 0;
         for (int v : w) {
             s += v;
         }

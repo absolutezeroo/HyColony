@@ -9,6 +9,6 @@ import dev.hyangler.api.FishingContext;
  */
 @FunctionalInterface
 public interface Condition {
-    /** Whether the catch can happen in this context; pure. */
+    /** Whether the catch can happen in this context; pure. One that throws counts as false and is reported. */
     boolean test(FishingContext context);
 }

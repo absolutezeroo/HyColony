@@ -5,7 +5,9 @@ import java.util.random.RandomGenerator;
 
 /**
  * A caught fish's rarity state (spec § 6.3): the baited trap's weights (Drops_Fishing_Trap_Crude_Baited_Wild: common
- * 100, uncommon 50, rare 10, epic 5, legendary 1), each raised by luck × its quality (0 to +4).
+ * 100, uncommon 50, rare 10, epic 5, legendary 1), each raised by luck × its quality (0 to +4). Deviation from
+ * vanilla (Hytale world): vanilla has no rarity; Hytale's trap ignores luck, so the qualities are HyAngler's, after
+ * vanilla's quality rule (spec § 6.3). Luck counts up to Weights.MAX_LUCK.
  */
 final class RarityRoll {
     private static final int[] WEIGHT = {100, 50, 10, 5, 1};
@@ -38,9 +40,10 @@ final class RarityRoll {
     }
 
     private static int[] weights(int luck) {
+        int capped = Math.min(luck, Weights.MAX_LUCK);
         int[] w = new int[WEIGHT.length];
         for (int i = 0; i < w.length; i++) {
-            w[i] = WEIGHT[i] + i * luck;
+            w[i] = WEIGHT[i] + i * capped;
         }
         return w;
     }

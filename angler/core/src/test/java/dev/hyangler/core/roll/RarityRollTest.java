@@ -20,6 +20,24 @@ class RarityRollTest {
     }
 
     @Test
+    void eachLuckRaisesEachRarityByItsQuality() {
+        // Luck 2, qualities 0 to 4: 100, 52, 14, 11, 9 of 186
+        double[] lucky = RarityRoll.chances(2);
+        double[] expected = {100 / 186.0, 52 / 186.0, 14 / 186.0, 11 / 186.0, 9 / 186.0};
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals(expected[i], lucky[i], 1e-12);
+        }
+    }
+
+    @Test
+    void aHugeLuckCountsAsTheMaximumAndStillRolls() {
+        double[] huge = RarityRoll.chances(Integer.MAX_VALUE);
+        int l = Weights.MAX_LUCK;
+        assertEquals((1 + 4.0 * l) / (166 + 10.0 * l), huge[Rarity.LEGENDARY.ordinal()], 1e-12);
+        assertEquals(Rarity.COMMON, RarityRoll.roll(Integer.MAX_VALUE, new ScriptedRandom(0)));
+    }
+
+    @Test
     void luckMakesRareFishLikelier() {
         double[] none = RarityRoll.chances(0);
         double[] lucky = RarityRoll.chances(2);

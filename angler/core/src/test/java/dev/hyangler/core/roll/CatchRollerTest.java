@@ -28,6 +28,33 @@ class CatchRollerTest {
             Map.of(),
             List.of());
 
+    private static CatchRoller roller(Catalog c) {
+        return new CatchRoller(c, e -> {
+            throw new AssertionError(e);
+        });
+    }
+
+    @Test
+    void hugeWeightsStillBite() {
+        Catalog huge = new Catalog(
+                List.of(
+                        fish("Fish_A", 2_000_000_000, false, ctx -> true),
+                        fish("Fish_B", 2_000_000_000, false, ctx -> true)),
+                List.of(),
+                List.of(),
+                Map.of(),
+                List.of());
+        assertEquals(
+                "Fish_A",
+                roller(huge)
+                        .roll(Contexts.base(), new ScriptedRandom(0, 5))
+                        .orElseThrow()
+                        .itemId());
+        List<CatchChance> chances = roller(huge).chances(Contexts.base());
+        assertEquals(0.5, chances.get(0).probability(), 1e-12);
+        assertEquals(0.5, chances.get(1).probability(), 1e-12);
+    }
+
     private static Entry fish(String id, int weight, boolean rarities, Condition c) {
         return new Entry(id, CatchCategory.FISH, weight, 0, 1, 1, rarities, c, List.of());
     }
@@ -38,7 +65,7 @@ class CatchRollerTest {
 
     @Test
     void chancesSumToOneAndFollowTheCategories() {
-        List<CatchChance> noon = new CatchRoller(catalog).chances(Contexts.base());
+        List<CatchChance> noon = roller(catalog).chances(Contexts.base());
         assertEquals(1.0, noon.stream().mapToDouble(CatchChance::probability).sum(), 1e-9);
         // fish 85, junk 10, treasure 5 of 100; at noon only the bluegill is a fish
         assertEquals("Fish_Bluegill_Item", noon.getFirst().itemId());
@@ -47,7 +74,7 @@ class CatchRollerTest {
 
     @Test
     void catfishOnlyBitesAtNight() {
-        List<CatchChance> night = new CatchRoller(catalog).chances(Contexts.hour(23));
+        List<CatchChance> night = roller(catalog).chances(Contexts.hour(23));
         double catfish = night.stream()
                 .filter(c -> c.itemId().equals("Fish_Catfish_Item"))
                 .mapToDouble(CatchChance::probability)
@@ -58,23 +85,21 @@ class CatchRollerTest {
     @Test
     void anEmptyCategoryGivesItsShareToTheOthers() {
         Catalog noJunk = new Catalog(catalog.fish(), List.of(), List.of(), Map.of(), List.of());
-        List<CatchChance> c = new CatchRoller(noJunk).chances(Contexts.base());
+        List<CatchChance> c = roller(noJunk).chances(Contexts.base());
         assertEquals(1.0, c.getFirst().probability(), 1e-9);
     }
 
     @Test
     void nothingBitesWhereNothingLives() {
         Catalog nightOnly = new Catalog(List.of(catalog.fish().get(1)), List.of(), List.of(), Map.of(), List.of());
-        assertTrue(new CatchRoller(nightOnly).chances(Contexts.base()).isEmpty());
-        assertTrue(new CatchRoller(nightOnly)
-                .roll(Contexts.base(), new ScriptedRandom())
-                .isEmpty());
+        assertTrue(roller(nightOnly).chances(Contexts.base()).isEmpty());
+        assertTrue(roller(nightOnly).roll(Contexts.base(), new ScriptedRandom()).isEmpty());
     }
 
     @Test
     void aRolledFishCarriesItsRarity() {
         // category: 0 of 100 -> fish; species: 0 of 30 -> bluegill; rarity: 150 of 166 -> rare
-        var c = new CatchRoller(catalog)
+        var c = roller(catalog)
                 .roll(Contexts.base(), new ScriptedRandom(0, 0, 150))
                 .orElseThrow();
         assertEquals("Fish_Bluegill_Item", c.itemId());
@@ -84,7 +109,7 @@ class CatchRollerTest {
     @Test
     void junkComesInItsCount() {
         // category: 90 of 100 -> junk; entry: 0 of 10; count: 2 in [1, 4)
-        var c = new CatchRoller(catalog)
+        var c = roller(catalog)
                 .roll(Contexts.base(), new ScriptedRandom(90, 0, 2))
                 .orElseThrow();
         assertEquals("Rubble_Stone", c.itemId());

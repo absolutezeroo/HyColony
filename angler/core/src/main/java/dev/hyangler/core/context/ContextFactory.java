@@ -20,8 +20,20 @@ public record ContextFactory(
         WeatherProbe weather,
         Set<String> saltEnvironments) {
 
-    /** The context at (x, y, z) for this tackle; an hour of 24 is midnight. */
+    public ContextFactory {
+        saltEnvironments = Set.copyOf(saltEnvironments);
+    }
+
+    /** The context at (x, y, z) for this tackle, open water read now; an hour of 24 is midnight. */
     public FishingContext at(int x, int y, int z, Tackle tackle) {
+        return at(x, y, z, tackle, openWater(x, y, z));
+    }
+
+    /**
+     * The context at (x, y, z) for this tackle with the open water a cast kept through its approach and bite
+     * (CastSession.openWater, vanilla FishingHook.tick); an hour of 24 is midnight.
+     */
+    public FishingContext at(int x, int y, int z, Tackle tackle, boolean openWater) {
         String environment = environments.environment(x, y, z);
         WaterKind water = saltEnvironments.contains(environment) ? WaterKind.SALT : WaterKind.FRESH;
         double hour = clock.hour() % 24;
@@ -30,12 +42,17 @@ public record ContextFactory(
                 environments.zone(environment),
                 water,
                 WaterColumn.depth(blocks, x, y, z),
-                OpenWater.test(blocks, x, y, z),
+                openWater,
                 blocks.skyVisible(x, y, z),
                 hour < 0 || Double.isNaN(hour) ? 0 : hour,
                 weather.weather(x, y, z),
                 weather.raining(x, y, z),
                 Math.max(0, clock.moonPhase()),
                 tackle);
+    }
+
+    /** Whether open water surrounds (x, y, z) now (vanilla's 5 × 4 × 5 rule): the cast's input while a fish comes. */
+    public boolean openWater(int x, int y, int z) {
+        return OpenWater.test(blocks, x, y, z);
     }
 }

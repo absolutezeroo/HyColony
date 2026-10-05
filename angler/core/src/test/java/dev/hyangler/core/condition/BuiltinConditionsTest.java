@@ -1,6 +1,7 @@
 package dev.hyangler.core.condition;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonParser;
@@ -55,13 +56,22 @@ class BuiltinConditionsTest {
     }
 
     @Test
-    void weatherMatchesItsIdsOrTheRain() {
+    void aTimeWindowOfNoLengthIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> condition("{\"Type\":\"Time\",\"From\":6,\"To\":6}"));
+    }
+
+    @Test
+    void weatherMatchesItsIdsAndItsRain() {
         Condition storm = condition("{\"Type\":\"Weather\",\"Ids\":[\"Zone2_Storm\"]}");
         assertTrue(storm.test(Contexts.weather("Zone2_Storm", true)));
         assertFalse(storm.test(Contexts.weather("Zone2_Sunny", false)));
         Condition rain = condition("{\"Type\":\"Weather\",\"Rain\":true}");
         assertTrue(rain.test(Contexts.weather("Zone1_Rain", true)));
         assertFalse(rain.test(Contexts.base()));
+        Condition dryFog = condition("{\"Type\":\"Weather\",\"Ids\":[\"Zone1_Fog\"],\"Rain\":false}");
+        assertTrue(dryFog.test(Contexts.weather("Zone1_Fog", false)));
+        assertFalse(dryFog.test(Contexts.weather("Zone1_Fog", true)));
+        assertFalse(dryFog.test(Contexts.weather("Zone1_Sunny", false)));
     }
 
     @Test

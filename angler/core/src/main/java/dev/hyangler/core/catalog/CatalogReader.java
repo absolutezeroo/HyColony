@@ -21,7 +21,7 @@ public final class CatalogReader {
     private CatalogReader() {}
 
     /**
-     * The catalog of files; rarityItems names the items that carry rarity states (Rarities' default), defaultLine is a
+     * The catalog of files; rarityItems names the items that carry rarity states (only they roll one), defaultLine is a
      * rod's line when its file gives none.
      */
     public static Catalog read(
@@ -57,7 +57,9 @@ public final class CatalogReader {
             throw new IllegalArgumentException("Weight must be at least 1");
         }
         int[] count = count(json);
-        boolean rarities = json.has("Rarities") ? json.get("Rarities").getAsBoolean() : rarityItems.contains(id);
+        // Rarities can only turn the states off: an item without them has no state to give.
+        boolean rarities = rarityItems.contains(id)
+                && (!json.has("Rarities") || json.get("Rarities").getAsBoolean());
         return new Entry(
                 id,
                 category,
@@ -102,8 +104,8 @@ public final class CatalogReader {
         for (JsonElement m : e.getAsJsonArray()) {
             JsonObject o = m.getAsJsonObject();
             double multiplier = o.get("Multiplier").getAsDouble();
-            if (!(multiplier >= 0)) {
-                throw new IllegalArgumentException("Multiplier must be 0 or more");
+            if (!Double.isFinite(multiplier) || multiplier < 0) {
+                throw new IllegalArgumentException("Multiplier must be a finite number, 0 or more");
             }
             out.add(new Modifier(registry.parse(o.getAsJsonObject("If")), multiplier));
         }

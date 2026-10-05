@@ -12,6 +12,7 @@ import dev.hyangler.core.port.EnvironmentProbe;
 import dev.hyangler.core.port.WeatherProbe;
 import dev.hyangler.core.port.WorldClock;
 import dev.hyangler.core.testing.FakeBlocks;
+import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -69,6 +70,8 @@ class ContextFactoryTest {
         assertTrue(c.openWater());
         assertEquals(19.5, c.hour());
         assertEquals(2, c.moonPhase());
+        assertTrue(c.skyVisible());
+        assertEquals("Zone1_Rain", c.weather());
         assertTrue(c.raining());
         assertEquals(1, c.tackle().lure());
     }
@@ -80,6 +83,39 @@ class ContextFactoryTest {
                 .at(0, 10, 0, Tackle.NONE);
         assertEquals(WaterKind.SALT, c.water());
         assertFalse(c.openWater());
+    }
+
+    @Test
+    void theSaltEnvironmentsAreCopiedOnce() {
+        Set<String> salt = new HashSet<>(Set.of("Env_Zone1_Shores"));
+        ContextFactory factory = new ContextFactory(new FakeBlocks(), env("Env_Zone1_Shores"), DUSK, RAIN, salt);
+        salt.clear();
+        assertEquals(WaterKind.SALT, factory.at(0, 10, 0, Tackle.NONE).water());
+    }
+
+    @Test
+    void anOpenWaterHeldThroughTheCastReplacesTheOneAtTheCatch() {
+        FakeBlocks pond = new FakeBlocks().fill(-5, 5, -5, 5, 10, 5, BlockKind.WATER_SOURCE);
+        ContextFactory factory = new ContextFactory(pond, env("Env_Zone1_Forests"), DUSK, RAIN, Set.of());
+        assertTrue(factory.openWater(0, 10, 0));
+        assertFalse(factory.at(0, 10, 0, Tackle.NONE, false).openWater());
+    }
+
+    @Test
+    void aHiddenSkyIsReadAtTheBobber() {
+        FishingContext c =
+                new ContextFactory(new FakeBlocks().sky(false), env(""), DUSK, RAIN, Set.of()).at(0, 0, 0, Tackle.NONE);
+        assertFalse(c.skyVisible());
+    }
+
+    @Test
+    void aClockGoneWrongGivesMidnightAndTheFirstMoon() {
+        for (double hour : new double[] {-3, Double.NaN}) {
+            FishingContext c = new ContextFactory(new FakeBlocks(), env(""), clock(hour, -1), RAIN, Set.of())
+                    .at(0, 0, 0, Tackle.NONE);
+            assertEquals(0.0, c.hour());
+            assertEquals(0, c.moonPhase());
+        }
     }
 
     @Test

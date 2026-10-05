@@ -67,10 +67,14 @@ final class BuiltinConditions {
         if (from < 0 || from > 24 || to < 0 || to > 24) {
             throw new IllegalArgumentException("Time needs From and To, from 0 to 24");
         }
+        if (from == to) {
+            throw new IllegalArgumentException("Time needs From and To to differ");
+        }
         TimeWindow window = new TimeWindow(from, to);
         return ctx -> window.contains(ctx.hour());
     }
 
+    /** The weather is one of Ids, and the rain is Rain; each key given must hold. */
     private static Condition weather(ConditionSpec spec) {
         Set<String> ids = Set.copyOf(spec.strings("Ids"));
         Optional<Boolean> rain = spec.bool("Rain");
